@@ -23,6 +23,7 @@ export interface Recipe {
   source_name: string | null
   author: string | null
   source_url: string | null
+  recipe_info: string | null
   instructions: string | null
   chef_notes: string | null
   original_ingredients: string

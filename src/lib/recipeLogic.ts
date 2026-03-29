@@ -419,6 +419,7 @@ export function buildEmailBody(
   desiredServings: number,
   scaledLines: ParsedLine[],
   options?: {
+    recipeInfo?: string | null
     sourceName?: string | null
     author?: string | null
     sourceUrl?: string | null
@@ -426,7 +427,7 @@ export function buildEmailBody(
     totalCost?: number
   }
 ): string {
-  const { sourceName, author, sourceUrl, instructions, totalCost } = options ?? {}
+  const { recipeInfo, sourceName, author, sourceUrl, instructions, totalCost } = options ?? {}
   const multiplier = (desiredServings / originalServings).toFixed(2).replace(/\.?0+$/, '')
   const lines = scaledLines.map(l =>
     l.wasScaled
@@ -438,7 +439,8 @@ export function buildEmailBody(
   if (author) body += `Author: ${author}\n`
   if (sourceName) body += `Source: ${sourceName}\n`
   if (sourceUrl) body += `URL: ${sourceUrl}\n`
-  body += `Scaled: ${originalServings} → ${desiredServings} servings (×${multiplier})\n\n`
+  if (recipeInfo) body += `\n${recipeInfo}\n`
+  body += `\nScaled: ${originalServings} → ${desiredServings} servings (×${multiplier})\n\n`
   body += `INGREDIENTS\n${lines}`
   if (totalCost && totalCost > 0) {
     body += `\n\nTotal cost: $${totalCost.toFixed(2)}`

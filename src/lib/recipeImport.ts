@@ -8,6 +8,7 @@
 export interface ImportedRecipe {
   name: string
   author: string | null
+  recipeInfo: string | null  // timing, course, cuisine — freeform
   ingredients: string        // newline-separated ingredient list
   instructions: string       // plain text, newline-separated steps
   originalServings: number | null
@@ -17,6 +18,21 @@ export interface ImportedRecipe {
 export type ImportResult =
   | { success: true; recipe: ImportedRecipe }
   | { success: false; error: string }
+
+/**
+ * Parses an ISO 8601 duration (e.g. "PT1H30M") into a human-readable string.
+ */
+function parseISODuration(raw: unknown): string | null {
+  if (!raw || typeof raw !== 'string') return null
+  const match = raw.match(/PT(?:(\d+)H)?(?:(\d+)M)?/)
+  if (!match || (!match[1] && !match[2])) return null
+  const hours = parseInt(match[1] ?? '0')
+  const minutes = parseInt(match[2] ?? '0')
+  const parts: string[] = []
+  if (hours > 0) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`)
+  if (minutes > 0) parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`)
+  return parts.join(' ') || null
+}
 
 /**
  * Normalizes Schema.org author, which can be a string, Person object, or array.
@@ -131,7 +147,18 @@ function extractSchemaRecipe(html: string): ImportedRecipe | null {
         const originalServings = normalizeYield(obj.recipeYield)
         const author = normalizeAuthor(obj.author)
 
-        return { name, author, ingredients, instructions, originalServings, sourceUrl: '' }
+        const infoParts: string[] = []
+        const prepTime = parseISODuration(obj.prepTime)
+        const cookTime = parseISODuration(obj.cookTime)
+        const totalTime = parseISODuration(obj.totalTime)
+        if (prepTime) infoParts.push(`Prep: ${prepTime}`)
+        if (cookTime) infoParts.push(`Cook: ${cookTime}`)
+        if (totalTime) infoParts.push(`Total: ${totalTime}`)
+        if (obj.recipeCuisine) infoParts.push(`Cuisine: ${String(obj.recipeCuisine)}`)
+        if (obj.recipeCategory) infoParts.push(`Course: ${String(obj.recipeCategory)}`)
+        const recipeInfo = infoParts.length > 0 ? infoParts.join('\n') : null
+
+        return { name, author, recipeInfo, ingredients, instructions, originalServings, sourceUrl: '' }
       }
     } catch {
       // JSON parse error — try next block

@@ -13,6 +13,7 @@ interface RecipeFormProps {
     sourceName: string
     author: string
     sourceUrl: string
+    recipeInfo: string
     instructions: string
     chefNotes: string
     originalIngredients: string
@@ -34,6 +35,7 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
   const [sourceName, setSourceName] = useState(initialData?.sourceName ?? '')
   const [author, setAuthor] = useState(initialData?.author ?? '')
   const [sourceUrl, setSourceUrl] = useState(initialData?.sourceUrl ?? '')
+  const [recipeInfo, setRecipeInfo] = useState(initialData?.recipeInfo ?? '')
   const [instructions, setInstructions] = useState(initialData?.instructions ?? '')
   const [chefNotes, setChefNotes] = useState(initialData?.chefNotes ?? '')
   const [originalIngredients, setOriginalIngredients] = useState(initialData?.originalIngredients ?? '')
@@ -65,6 +67,7 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
       setName(json.name ?? '')
       setAuthor(json.author ?? '')
       setSourceUrl(json.sourceUrl ?? importUrl.trim())
+      setRecipeInfo(json.recipeInfo ?? '')
       setOriginalIngredients(json.ingredients ?? '')
       setInstructions(json.instructions ?? '')
       if (json.originalServings) setOriginalServings(String(json.originalServings))
@@ -123,6 +126,7 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
       source_name: sourceName || null,
       author: author || null,
       source_url: sourceUrl || null,
+      recipe_info: recipeInfo || null,
       instructions: instructions || null,
       chef_notes: chefNotes || null,
       original_ingredients: normalizedIngredients,
@@ -167,6 +171,7 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
         onBack={handleReset}
         saving={saving}
         isOwner={isOwner}
+        recipeInfo={recipeInfo}
         sourceName={sourceName}
         author={author}
         sourceUrl={sourceUrl}
@@ -236,6 +241,13 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
         <input type="url" value={sourceUrl} onChange={e => setSourceUrl(e.target.value)}
           placeholder="https://..."
           className={inputClass(false)} />
+      </Field>
+
+      <Field label="Recipe info (optional)"
+        hint="Prep time, cook time, cuisine, course, etc. Auto-filled when importing from URL.">
+        <textarea value={recipeInfo} onChange={e => setRecipeInfo(e.target.value)}
+          rows={3} placeholder={"Prep: 20 minutes\nCook: 1 hour 10 minutes\nTotal: 1 hour 30 minutes"}
+          className={`${inputClass(false)} resize-y`} />
       </Field>
 
       {/* Servings row */}

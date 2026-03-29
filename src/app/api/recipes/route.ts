@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json()
   const {
-    name, source_name, author, source_url, instructions, chef_notes,
+    name, source_name, author, source_url, recipe_info, instructions, chef_notes,
     original_ingredients, original_servings, desired_servings,
     scaled_ingredients, total_cost,
   } = body
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     .from('recipes')
     .insert({
       user_id: user.id,
-      name, source_name, author, source_url, instructions, chef_notes,
+      name, source_name, author, source_url, recipe_info, instructions, chef_notes,
       original_ingredients, original_servings, desired_servings,
       scaled_ingredients, total_cost,
     })

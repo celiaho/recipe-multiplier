@@ -15,6 +15,7 @@ interface RecipeResultsProps {
   onBack?: () => void
   saving?: boolean
   isOwner?: boolean
+  recipeInfo?: string | null
   sourceName?: string | null
   author?: string | null
   sourceUrl?: string | null
@@ -27,7 +28,7 @@ export function RecipeResults({
   scaledLines, scaledInstructions,
   costMap, onCostChange = () => {},
   onSave, onBack, saving,
-  isOwner = true, sourceName, author, sourceUrl, chefNotes, showChefNotes = true,
+  isOwner = true, recipeInfo, sourceName, author, sourceUrl, chefNotes, showChefNotes = true,
 }: RecipeResultsProps) {
   const [checked, setChecked] = useState<Record<number, boolean>>({})
   const [showCosts, setShowCosts] = useState(false)
@@ -55,6 +56,7 @@ export function RecipeResults({
 
   function handleEmail() {
     const body = buildEmailBody(recipeName, originalServings, desiredServings, scaledLines, {
+      recipeInfo,
       sourceName,
       author,
       sourceUrl,
@@ -124,6 +126,15 @@ export function RecipeResults({
           )}
         </div>
       </div>
+
+      {/* Recipe info (timing, cuisine, etc.) */}
+      {recipeInfo && (
+        <section>
+          <div className="text-sm text-stone-600 whitespace-pre-wrap bg-stone-50 border border-stone-100 rounded-lg px-4 py-3 leading-relaxed">
+            {recipeInfo}
+          </div>
+        </section>
+      )}
 
       {/* Ingredients */}
       <section>

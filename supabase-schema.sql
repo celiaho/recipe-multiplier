@@ -39,6 +39,7 @@ CREATE TABLE recipes (
   source_name          TEXT,
   author               TEXT,
   source_url           TEXT,
+  recipe_info          TEXT,
   instructions         TEXT,
   chef_notes           TEXT,
   original_ingredients TEXT NOT NULL,

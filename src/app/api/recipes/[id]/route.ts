@@ -39,7 +39,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   // Whitelist updatable fields to prevent mass assignment
   const {
-    name, source_name, author, source_url, instructions,
+    name, source_name, author, source_url, recipe_info, instructions,
     original_ingredients, original_servings, desired_servings,
     scaled_ingredients, total_cost,
   } = body
@@ -57,6 +57,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     ...(source_name !== undefined && { source_name }),
     ...(author !== undefined && { author }),
     ...(source_url !== undefined && { source_url }),
+    ...(recipe_info !== undefined && { recipe_info }),
     ...(instructions !== undefined && { instructions }),
     ...(original_ingredients !== undefined && { original_ingredients }),
     ...(original_servings !== undefined && { original_servings }),
