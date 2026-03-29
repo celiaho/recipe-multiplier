@@ -10,6 +10,7 @@ export default function LoginPage() {
   const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
@@ -37,6 +38,8 @@ export default function LoginPage() {
     else setResetSent(true)
   }
 
+  const inputClass = 'w-full border border-stone-300 rounded-lg px-3 py-3 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500'
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
       <div className="w-full max-w-sm">
@@ -54,28 +57,54 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
-                <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">Password</label>
-                <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    className={`${inputClass} pr-16`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-700 text-xs font-medium min-w-[40px] text-right"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
               </div>
               {error && <p className="text-xs text-red-600">{error}</p>}
-              <button type="submit" disabled={loading}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg font-semibold text-sm transition-colors disabled:opacity-50">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3 rounded-lg font-semibold text-sm transition-colors disabled:opacity-50"
+              >
                 {loading ? 'Logging in…' : 'Log in'}
               </button>
-              <button type="button" onClick={handleReset}
-                className="w-full text-sm text-stone-500 hover:text-stone-700 text-center">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-full text-sm text-stone-500 hover:text-stone-700 text-center py-1"
+              >
                 Forgot password?
               </button>
             </form>
           )}
         </div>
-        <p className="text-center text-sm text-stone-500 mt-4">
-          Don&apos;t have an account? <Link href="/signup" className="text-emerald-600 hover:underline font-medium">Sign up</Link>
+        <p className="text-center text-sm text-stone-600 mt-4">
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" className="text-emerald-700 hover:underline font-medium">Sign up</Link>
         </p>
       </div>
     </div>

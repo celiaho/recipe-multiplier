@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Recipe Multiplier
 
-## Getting Started
+Scale any recipe up or down, track ingredient costs, and share recipes with your team.
 
-First, run the development server:
+**Live app:** https://recipe-multiplier.vercel.app
+
+---
+
+## Features
+
+- Scale recipes by any multiplier — supports fractions, mixed numbers, decimals, and colloquial quantities (a pinch, a handful, a dash)
+- Import recipes directly from URLs (AllRecipes, Serious Eats, BBC Good Food, Epicurious, King Arthur Baking, and most recipe blogs)
+- Track per-ingredient costs with total cost and cost-per-serving summary
+- Share recipes with teammates — view or edit access, Google Drive-style
+- Private chef notes visible only to the recipe owner
+- Email scaled recipes with full ingredient list, instructions, and timing info
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend + API | Next.js 16 (App Router, Turbopack) |
+| Database + Auth | Supabase (Postgres + Row Level Security) |
+| File storage | Supabase Storage (avatar uploads) |
+| Deployment | Vercel |
+| Styling | Tailwind CSS |
+
+## Local Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev       # starts at http://localhost:3000
+npm run build     # production build check
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env.local` file:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run `supabase-schema.sql` in your Supabase SQL Editor to create all tables, RLS policies, triggers, and storage buckets.
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+Deployed on Vercel. Every push to `main` triggers an automatic production deployment.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Supabase settings required:**
+- Authentication → URL Configuration → Site URL: `https://recipe-multiplier.vercel.app`
+- Authentication → URL Configuration → Redirect URLs: `https://recipe-multiplier.vercel.app/**`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture and Process
 
-## Deploy on Vercel
+See [`PROCESS.md`](./PROCESS.md) for:
+- Why this stack was chosen over alternatives
+- All architectural decisions and trade-offs
+- Deferred features and known bugs
+- The full AI-assisted development process log
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Origin
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Refactored from a Java servlet school project (CSC-285, BHCC Fall 2024) into a deployable multi-user web application. The original Java implementation lives at [`celiaho/CSC-285_Advanced_Java_Assignments`](https://github.com/celiaho/CSC-285_Advanced_Java_Assignments).

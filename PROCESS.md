@@ -197,9 +197,18 @@ The original Java servlet app lives in `celiaho/CSC-285_Advanced_Java_Assignment
 
 ---
 
-## Deferred: Accessibility Pass (WCAG 2.1 AA)
+## Accessibility Pass (WCAG 2.1 AA)
 
-Deliberately deferred until after initial deployment. All issues identified; none affect functionality.
+Partially addressed after mobile usability issues were reported (2026-03-28). Remaining issues documented below.
+
+### Fixed (2026-03-28)
+- Profile menu now click-based (was CSS hover-only — inaccessible on mobile touch)
+- Avatar button has `aria-label="Account menu"` and `min-h-[44px] min-w-[44px]` touch target
+- Navbar links and buttons have `min-h-[44px]` touch targets
+- Auth page inputs use `py-3` (≥44px height) and explicit `text-stone-900` for contrast
+- Hint text changed from `text-stone-400` to `text-stone-500` (better contrast)
+- Submit buttons changed from `bg-emerald-600` to `bg-emerald-700` (better contrast on white text)
+- Link colors changed from `text-emerald-600` to `text-emerald-700` on auth pages
 
 ### Issues to fix:
 
