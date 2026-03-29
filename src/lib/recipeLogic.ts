@@ -221,6 +221,37 @@ function tryScaleColloquial(
   return null
 }
 
+// ─── Secondary quantity scaling ──────────────────────────────────────────────
+
+/**
+ * Scales any additional numeric quantities found within an ingredient string.
+ * Used after the leading quantity is already extracted and scaled.
+ * Example: "cups (480ml) chicken broth" → "cups (960ml) chicken broth" at ×2
+ * Note: no > 200 guard here — ingredient amounts like (500ml) must scale.
+ */
+function scaleSecondaryQtys(ingredient: string, multiplier: number): string {
+  return ingredient.replace(
+    /\b(\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+)\b/gm,
+    (m) => {
+      try {
+        let value: number
+        if (m.includes(' ')) {
+          const [w, f] = m.split(' ')
+          value = parseFloat(w) + fractionStringToDouble(f)
+        } else if (m.includes('/')) {
+          value = fractionStringToDouble(m)
+        } else {
+          value = parseFloat(m)
+          if (value < 0.01) return m
+        }
+        return formatQty(value * multiplier)
+      } catch {
+        return m
+      }
+    }
+  )
+}
+
 // ─── Main parsing regex (same as Java original) ───────────────────────────────
 // Matches: whole number, mixed number (e.g. "1 1/2"), fraction (e.g. "3/4"), decimal
 const QTY_REGEX = /^(\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+)\s+(.*)/s
@@ -238,7 +269,7 @@ function parseLine(line: string, multiplier: number): ParsedLine {
   if (colloquial) {
     return {
       scaledQty: colloquial.scaledQty,
-      ingredient: colloquial.ingredient,
+      ingredient: scaleSecondaryQtys(colloquial.ingredient, multiplier),
       originalLine: line,
       wasScaled: true,
     }
@@ -283,7 +314,7 @@ function parseLine(line: string, multiplier: number): ParsedLine {
 
   return {
     scaledQty: formatQty(scaled),
-    ingredient: displayIngredient,
+    ingredient: scaleSecondaryQtys(displayIngredient, multiplier),
     originalLine: line,
     wasScaled: true,
   }

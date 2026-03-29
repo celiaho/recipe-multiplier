@@ -76,6 +76,11 @@ function normalizeYield(raw: unknown): number | null {
   const arr = Array.isArray(raw) ? raw : [raw]
   for (const item of arr) {
     const str = String(item)
+    // Handle ranges like "6-8" or "6 to 8" — return the average
+    const rangeMatch = str.match(/(\d+(?:\.\d+)?)\s*(?:-|to)\s*(\d+(?:\.\d+)?)/)
+    if (rangeMatch) {
+      return Math.round((parseFloat(rangeMatch[1]) + parseFloat(rangeMatch[2])) / 2)
+    }
     const match = str.match(/(\d+(?:\.\d+)?)/)
     if (match) return parseFloat(match[1])
   }

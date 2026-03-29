@@ -150,7 +150,7 @@ The original Java servlet app lives in `celiaho/CSC-285_Advanced_Java_Assignment
 ## What I Would Do Next
 
 - **Phase 2:** Unit conversion (16 oz → 1 lb), shopping list (combine ingredients from multiple recipes), duplicate recipe
-- **Phase 3:** Secondary measurements parsing ("2 lbs chicken (7–8 thighs)"), invite by email for non-registered users
+- **Phase 3:** Invite by email for non-registered users
 - **Tests:** Port `ParseFractionStringTest.java` to a proper Jest test suite for `recipeLogic.ts` — this is a natural next step given the fraction logic is the most complex part
 
 ---
@@ -177,6 +177,18 @@ The original Java servlet app lives in `celiaho/CSC-285_Advanced_Java_Assignment
 ---
 
 ## Deferred: Known Bugs
+
+**Empty line whitespace in ingredient list (fixed 2026-03-28)**
+- Ingredient textareas with blank lines between items were saved with blank lines in the database.
+- Fixed: `handleSave()` in `RecipeForm.tsx` now normalizes ingredients before saving (trims each line, removes blanks).
+
+**Serving range truncation (fixed 2026-03-28)**
+- URL-imported recipes with serving ranges like "6-8" only captured "6".
+- Fixed: `normalizeYield()` in `recipeImport.ts` now detects range patterns and returns the average (7).
+
+**Secondary quantities in ingredient lines (fixed 2026-03-28)**
+- Only the leading quantity in an ingredient line was scaled. Parenthetical equivalents like "(2.7 lbs)" and additional quantities like "plus 1 tablespoon" were passed through verbatim.
+- Fixed: `parseLine()` in `recipeLogic.ts` now applies secondary quantity scaling to the ingredient remainder via `scaleSecondaryQtys()`.
 
 **Colloquial quantity cross-term conversion (`recipeLogic.ts` → `tryScaleColloquial`)**
 - "a pinch of love" × 2 outputs "**dashes** of love" (bold) instead of "2 pinches of love"

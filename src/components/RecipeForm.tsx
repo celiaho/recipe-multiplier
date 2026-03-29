@@ -112,6 +112,12 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
     const totalCost = Object.values(costMap)
       .reduce((sum, v) => sum + (parseFloat(v) || 0), 0)
 
+    const normalizedIngredients = originalIngredients
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 0)
+      .join('\n')
+
     const payload = {
       name,
       source_name: sourceName || null,
@@ -119,7 +125,7 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
       source_url: sourceUrl || null,
       instructions: instructions || null,
       chef_notes: chefNotes || null,
-      original_ingredients: originalIngredients,
+      original_ingredients: normalizedIngredients,
       original_servings: parseFloat(originalServings),
       desired_servings: parseFloat(desiredServings),
       scaled_ingredients: scaledWithCosts,
