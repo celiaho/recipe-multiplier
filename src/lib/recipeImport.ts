@@ -151,19 +151,19 @@ export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
   try {
     const response = await fetch(normalizedUrl, {
       headers: {
-        // Mimic a real browser to avoid bot-blocking
-        'User-Agent': 'Mozilla/5.0 (compatible; RecipeMultiplier/1.0)',
-        'Accept': 'text/html,application/xhtml+xml',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
       },
       signal: AbortSignal.timeout(10000), // 10 second timeout
     })
 
     if (!response.ok) {
-      return {
-        success: false,
-        error: `Could not fetch that URL (HTTP ${response.status}). Try copying the ingredients manually.`,
-      }
+      const msg = response.status === 403
+        ? 'This site blocks automated access (HTTP 403). Food Network, and some other major media sites do this. Try copying the ingredients manually.'
+        : `Could not fetch that URL (HTTP ${response.status}). Try copying the ingredients manually.`
+      return { success: false, error: msg }
     }
 
     html = await response.text()
