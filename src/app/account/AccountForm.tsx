@@ -1,0 +1,111 @@
+'use client'
+
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { AvatarUpload } from '@/components/AvatarUpload'
+import type { Profile } from '@/types/database'
+
+interface AccountFormProps {
+  profile: Profile
+  email: string
+}
+
+export function AccountForm({ profile: initialProfile, email }: AccountFormProps) {
+  const supabase = createClient()
+  const [profile, setProfile] = useState(initialProfile)
+  const [firstName, setFirstName] = useState(initialProfile.first_name ?? '')
+  const [lastName, setLastName] = useState(initialProfile.last_name ?? '')
+  const [companyName, setCompanyName] = useState(initialProfile.company_name ?? '')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        first_name: firstName,
+        last_name: lastName || null,
+        company_name: companyName || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', profile.id)
+    if (error) setError(error.message)
+    else { setSaved(true); setTimeout(() => setSaved(false), 2000) }
+    setSaving(false)
+  }
+
+  const displayName = [firstName, lastName].filter(Boolean).join(' ') || undefined
+
+  return (
+    <div className="space-y-8">
+      {/* Avatar */}
+      <section className="bg-white border border-stone-200 rounded-xl p-6">
+        <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-4">Profile photo</h2>
+        <AvatarUpload
+          profile={{ ...profile, first_name: firstName, last_name: lastName }}
+          email={email}
+          onUpdate={url => setProfile(p => ({ ...p, avatar_url: url }))}
+        />
+      </section>
+
+      {/* Name + email */}
+      <section className="bg-white border border-stone-200 rounded-xl p-6">
+        <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-4">Profile info</h2>
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-stone-700 mb-1">First name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                placeholder="Marco"
+                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-stone-700 mb-1">Last name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+                placeholder="Rossi"
+                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              Company <span className="text-stone-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={companyName}
+              onChange={e => setCompanyName(e.target.value)}
+              placeholder="Bella Catering Co."
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              disabled
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-stone-50 text-stone-400 cursor-not-allowed"
+            />
+          </div>
+          {error && <p className="text-xs text-red-600">{error}</p>}
+          <button type="submit" disabled={saving}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
+            {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
+          </button>
+        </form>
+      </section>
+    </div>
+  )
+}
