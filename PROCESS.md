@@ -169,6 +169,44 @@ Supabase's built-in email provider is rate-limited to approximately 3 auth email
 
 Adding a CNAME record in Squarespace's DNS panel (`recipemultiplier` → `cname.vercel-dns.com`) requires saving through Squarespace's interface. DNS propagation takes minutes to hours; Vercel shows the domain as unverified until propagation completes. Both `recipemultiplier.celiaho.com` and the Vercel deployment URL are now resolving correctly.
 
+### Git remote URL mismatch
+
+The recipe-multiplier repo's remote was set to SSH (`git@github.com:celiaho/recipe-multiplier.git`) but no SSH key was configured on this machine. The fix was switching to HTTPS:
+
+```
+git remote set-url origin https://github.com/celiaho/recipe-multiplier.git
+```
+
+Also, the local `main` branch had no upstream tracking set (the initial push was done without `-u`), so the first push required:
+
+```
+git push --set-upstream origin main
+```
+
+After that, `git push` works as expected.
+
+### Middleware → proxy rename (Next.js 16)
+
+Next.js 16 deprecated the `middleware` file convention in favor of `proxy`. Two changes were required:
+
+1. Rename `src/middleware.ts` → `src/proxy.ts`
+2. Rename the exported function inside the file from `middleware` to `proxy`
+
+Both changes are necessary — renaming only the file causes a Vercel build failure ("Proxy is missing expected function export name").
+
+### Favicon: favicon.ico vs icon.tsx
+
+Next.js serves `favicon.ico` from `src/app/` with higher priority than a programmatic `icon.tsx`. To use `icon.tsx` (which renders the 🍴 emoji as a PNG), the old `favicon.ico` had to be deleted. Browsers also cache favicons aggressively — a hard refresh (Ctrl+Shift+R) or incognito window is needed to see the updated icon after deployment.
+
+### Beta label and known issues notice
+
+Added in this session:
+- Amber "Beta" badge in the navbar next to the logo (`Navbar.tsx`)
+- Page title updated to "Recipe Multiplier (Beta)" (`layout.tsx`)
+- Amber callout above the recipe form warning users of the known scaling issue (`recipes/new/page.tsx`)
+- README.md written from scratch (was empty)
+- "Further development" notice added to the original Java servlet README and pushed to `celiaho/CSC-285_Advanced_Java_Assignments`
+
 ---
 
 ## What I Would Do Next
