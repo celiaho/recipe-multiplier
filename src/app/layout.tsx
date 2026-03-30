@@ -5,7 +5,7 @@ import './globals.css'
 const geist = Geist({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Recipe Multiplier',
+  title: 'Recipe Multiplier (Beta)',
   description: 'Scale any recipe up or down. Save, share, and cost your recipes.',
 }
 

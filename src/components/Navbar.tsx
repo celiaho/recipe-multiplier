@@ -37,8 +37,9 @@ export function Navbar({ profile, email }: NavbarProps) {
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-stone-200 shadow-sm">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-        <Link href="/" className="font-bold text-emerald-700 text-lg tracking-tight hover:text-emerald-600">
+        <Link href="/" className="font-bold text-emerald-700 text-lg tracking-tight hover:text-emerald-600 flex items-center gap-2">
           🍴 Recipe Multiplier
+          <span className="text-xs font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Beta</span>
         </Link>
 
         {email ? (

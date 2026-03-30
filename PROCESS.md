@@ -147,6 +147,30 @@ The original Java servlet app lives in `celiaho/CSC-285_Advanced_Java_Assignment
 
 ---
 
+## Deployment Completion Session (2026-03-30)
+
+### Deployment checklist — final status
+
+1. ✅ Create a [Supabase](https://supabase.com) project
+2. ✅ Run `supabase-schema.sql` in the Supabase SQL Editor
+3. ✅ Copy Supabase URL and anon key into `.env.local`
+4. ✅ Pushed repo to GitHub (`celiaho/recipe-multiplier`)
+5. ✅ Imported repo to [Vercel](https://vercel.com) — added Supabase env vars
+6. ✅ In Vercel: Settings → Domains → added `recipemultiplier.celiaho.com`
+7. ✅ In Squarespace DNS: added `CNAME recipemultiplier → cname.vercel-dns.com`
+
+Note: the original deployment plan used `recipe.celiaho.com` as the subdomain. Changed to `recipemultiplier.celiaho.com` for clarity.
+
+### Resend setup
+
+Supabase's built-in email provider is rate-limited to approximately 3 auth emails per hour. At any real usage level this blocks signup confirmations and password resets. Resend was configured as the custom SMTP provider in Supabase Auth settings (Authentication → SMTP Settings). Resend's free tier supports 3,000 emails/month with no hourly cap — sufficient for a beta deployment.
+
+### DNS issue with Squarespace
+
+Adding a CNAME record in Squarespace's DNS panel (`recipemultiplier` → `cname.vercel-dns.com`) requires saving through Squarespace's interface. DNS propagation takes minutes to hours; Vercel shows the domain as unverified until propagation completes. Both `recipemultiplier.celiaho.com` and the Vercel deployment URL are now resolving correctly.
+
+---
+
 ## What I Would Do Next
 
 - **Phase 2:** Unit conversion (16 oz → 1 lb), shopping list (combine ingredients from multiple recipes), duplicate recipe

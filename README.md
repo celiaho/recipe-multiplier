@@ -1,63 +1,88 @@
-# Recipe Multiplier
+# Recipe Multiplier (Beta)
 
-Scale any recipe up or down, track ingredient costs, and share recipes with your team.
+A recipe scaling tool for chefs and catering professionals. Scale ingredients up or down, track costs per serving, and share recipes with your team.
 
-**Live app:** https://recipe-multiplier.vercel.app
+**Live:** [recipemultiplier.celiaho.com](https://recipemultiplier.celiaho.com) · deployed on Vercel
+
+> **Beta:** This app is in active development. Known issue: in some cases, only the first quantity on an ingredient line is scaled. Review scaled results before use.
 
 ---
 
-## Features
+## What it does
 
-- Scale recipes by any multiplier — supports fractions, mixed numbers, decimals, and colloquial quantities (a pinch, a handful, a dash)
-- Import recipes directly from URLs (AllRecipes, Serious Eats, BBC Good Food, Epicurious, King Arthur Baking, and most recipe blogs)
-- Track per-ingredient costs with total cost and cost-per-serving summary
-- Share recipes with teammates — view or edit access, Google Drive-style
-- Private chef notes visible only to the recipe owner
-- Email scaled recipes with full ingredient list, instructions, and timing info
+- **Scale ingredients** — handles fractions, mixed numbers, decimals, and colloquial amounts like "a pinch" or "a handful"
+- **Import from URL** — paste a link from AllRecipes, NYT Cooking, Serious Eats, or any Schema.org-compliant recipe site
+- **Track costs** — add per-ingredient costs and see total cost + cost per serving
+- **Share with your team** — Google Drive-style per-recipe permissions (view or edit access per person)
+- **Chef notes** — private notes visible only to the recipe owner
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend + API | Next.js 16 (App Router, Turbopack) |
-| Database + Auth | Supabase (Postgres + Row Level Security) |
-| File storage | Supabase Storage (avatar uploads) |
-| Deployment | Vercel |
-| Styling | Tailwind CSS |
-
-## Local Development
-
-```bash
-npm install
-npm run dev       # starts at http://localhost:3000
-npm run build     # production build check
-```
-
-Create a `.env.local` file:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-Run `supabase-schema.sql` in your Supabase SQL Editor to create all tables, RLS policies, triggers, and storage buckets.
-
-## Deployment
-
-Deployed on Vercel. Every push to `main` triggers an automatic production deployment.
-
-**Supabase settings required:**
-- Authentication → URL Configuration → Site URL: `https://recipe-multiplier.vercel.app`
-- Authentication → URL Configuration → Redirect URLs: `https://recipe-multiplier.vercel.app/**`
-
-## Architecture and Process
-
-See [`PROCESS.md`](./PROCESS.md) for:
-- Why this stack was chosen over alternatives
-- All architectural decisions and trade-offs
-- Deferred features and known bugs
-- The full AI-assisted development process log
+---
 
 ## Origin
 
-Refactored from a Java servlet school project (CSC-285, BHCC Fall 2024) into a deployable multi-user web application. The original Java implementation lives at [`celiaho/CSC-285_Advanced_Java_Assignments`](https://github.com/celiaho/CSC-285_Advanced_Java_Assignments).
+Started as a Java servlet web app (CSC-285 Advanced Java, Fall 2024 at BHCC) — a locally-running recipe scaler that already handled fractions, mixed numbers, and ingredient parsing. A local chef asked for a hosted, multi-user version, which prompted a full rewrite in Next.js for public deployment.
+
+Original implementation: [CSC-285 Servlets — Recipe Multiplier](https://github.com/celiaho/CSC-285_Advanced_Java_Assignments/tree/main/20241116_W10_HW6_Servlets_Recipe_Multiplier)
+
+See [PROCESS.md](PROCESS.md) for the full development story and architecture decisions.
+
+---
+
+## Built with Claude Code
+
+Development was conducted collaboratively with [Claude Code](https://claude.ai/code) (Anthropic), used as a development accelerator. The AI ported the Java logic, designed the data model, and wrote boilerplate. Engineering judgment, feature decisions, and architecture trade-offs were made by the developer.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js (App Router) + TypeScript |
+| Auth + Database | Supabase (Postgres + Row Level Security) |
+| File storage | Supabase Storage (avatar photos) |
+| Transactional email | Resend (signup confirmation, password reset) |
+| Deployment | Vercel |
+| Styling | Tailwind CSS v4 |
+
+---
+
+## Local development
+
+**Prerequisites:** Node.js 18+, a Supabase project, a Resend account
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/celiaho/recipe-multiplier.git
+   cd recipe-multiplier
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create `.env.local` in the project root:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. Run the database schema in your Supabase SQL Editor (`supabase-schema.sql` in repo root).
+
+5. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Architecture and decisions
+
+See [PROCESS.md](PROCESS.md) for:
+- Why Next.js instead of the Java servlet approach for deployment
+- Why Supabase for auth and database (RLS-enforced sharing)
+- The Google Drive-style sharing model
+- Full deployment and configuration notes
+- Known bugs and deferred features
