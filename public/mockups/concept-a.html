@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept A — Warm Kitchen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #FBF5EE; color: #2C1A0E; }
+
+  /* NAV */
+  nav { background: #FBF5EE; border-bottom: 1px solid #E8D5C0; padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: #8B3A1A; display: flex; align-items: center; gap: 0.5rem; }
+  .nav-logo .beta { font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 600; background: #F3E0CC; color: #8B3A1A; padding: 2px 7px; border-radius: 99px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .nav-links { display: flex; align-items: center; gap: 1rem; font-size: 0.9rem; }
+  .nav-links a { color: #6B4226; text-decoration: none; font-weight: 500; }
+  .btn-primary { background: #C4622D; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+
+  /* HERO */
+  .hero { max-width: 800px; margin: 0 auto; padding: 5rem 2rem 4rem; text-align: center; }
+  .hero-eyebrow { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #C4622D; margin-bottom: 1.2rem; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: 3.8rem; line-height: 1.15; color: #1A0C05; margin-bottom: 1.25rem; }
+  .hero h1 em { font-style: italic; color: #C4622D; }
+  .hero p { font-size: 1.1rem; color: #6B4226; line-height: 1.7; max-width: 540px; margin: 0 auto 2.5rem; }
+  .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-hero { background: #C4622D; color: white; padding: 0.85rem 2rem; border-radius: 8px; font-weight: 600; font-size: 1rem; text-decoration: none; border: 2px solid #C4622D; transition: all 0.15s; }
+  .btn-hero:hover { background: #A3501F; }
+  .btn-hero-outline { background: transparent; color: #C4622D; padding: 0.85rem 2rem; border-radius: 8px; font-weight: 600; font-size: 1rem; text-decoration: none; border: 2px solid #C4622D; }
+
+  /* DIVIDER */
+  .divider { text-align: center; color: #C8A882; font-size: 1.5rem; padding: 1rem 0; letter-spacing: 0.5rem; }
+
+  /* FEATURES */
+  .features { max-width: 900px; margin: 0 auto; padding: 2rem 2rem 5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .feature-card { background: #FFF8F1; border: 1px solid #E8D5C0; border-radius: 14px; padding: 2rem 1.75rem; }
+  .feature-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #1A0C05; margin-bottom: 0.6rem; }
+  .feature-card p { font-size: 0.875rem; color: #7A5C3E; line-height: 1.6; }
+
+  /* APP PREVIEW */
+  .app-preview-section { background: #F0E4D4; padding: 4rem 2rem; }
+  .app-preview-section h2 { font-family: 'Playfair Display', serif; text-align: center; font-size: 2rem; color: #1A0C05; margin-bottom: 2.5rem; }
+  .app-preview { max-width: 700px; margin: 0 auto; background: #FFF8F1; border: 1px solid #E8D5C0; border-radius: 18px; padding: 2rem; box-shadow: 0 8px 40px rgba(100,50,20,0.12); }
+  .form-label { font-size: 0.8rem; font-weight: 600; color: #6B4226; letter-spacing: 0.03em; margin-bottom: 0.4rem; display: block; }
+  .form-input { width: 100%; background: white; border: 1px solid #DEC9B0; border-radius: 8px; padding: 0.65rem 0.9rem; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #2C1A0E; margin-bottom: 1.25rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-textarea { width: 100%; background: white; border: 1px solid #DEC9B0; border-radius: 8px; padding: 0.65rem 0.9rem; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #2C1A0E; height: 100px; margin-bottom: 1.25rem; resize: none; }
+  .scale-btn { width: 100%; background: #C4622D; color: white; border: none; padding: 0.85rem; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; }
+  .preview-tag { display: inline-block; background: #F3E0CC; color: #8B3A1A; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.5rem; }
+
+  /* LABEL */
+  .concept-label { background: #8B3A1A; color: white; text-align: center; padding: 0.5rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+<div class="concept-label">CONCEPT A — "WARM KITCHEN" — Earthy, cookbook-inspired</div>
+
+<nav>
+  <div class="nav-logo">🍴 Recipe Multiplier <span class="beta">Beta</span></div>
+  <div class="nav-links">
+    <a href="#">My Recipes</a>
+    <button class="btn-primary">+ New Recipe</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">For chefs &amp; catering professionals</div>
+  <h1>Scale any recipe.<br><em>Get it right every time.</em></h1>
+  <p>Scale ingredients up or down in seconds. Track costs, share with your team, and never do the math yourself again.</p>
+  <div class="hero-actions">
+    <a href="#" class="btn-hero">Get started free →</a>
+    <a href="#" class="btn-hero-outline">Log in</a>
+  </div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<div class="features">
+  <div class="feature-card">
+    <div class="feature-icon">⚖️</div>
+    <h3>Smart scaling</h3>
+    <p>Handles fractions, mixed numbers, and even "a pinch" or "a handful" — scaled correctly every time.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">👥</div>
+    <h3>Team sharing</h3>
+    <p>Share recipes with your staff. Set view-only or edit access per person, just like Google Drive.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">💰</div>
+    <h3>Cost tracking</h3>
+    <p>Add ingredient costs and instantly see total and per-serving price for any event.</p>
+  </div>
+</div>
+
+<div class="app-preview-section">
+  <h2>Scale a recipe in seconds</h2>
+  <div class="app-preview">
+    <span class="preview-tag">New recipe</span>
+    <label class="form-label">RECIPE NAME</label>
+    <input class="form-input" type="text" value="Roast Chicken with Herbs">
+    <div class="form-row">
+      <div>
+        <label class="form-label">ORIGINAL SERVINGS</label>
+        <input class="form-input" type="text" value="4">
+      </div>
+      <div>
+        <label class="form-label">DESIRED SERVINGS</label>
+        <input class="form-input" type="text" value="24">
+      </div>
+    </div>
+    <label class="form-label">INGREDIENTS</label>
+    <textarea class="form-textarea">3 lbs chicken thighs
+2 tbsp olive oil
+4 cloves garlic, minced
+1 1/2 tsp fresh thyme
+1/2 tsp black pepper</textarea>
+    <button class="scale-btn">Scale recipe →</button>
+  </div>
+</div>
+
+</body>
+</html>

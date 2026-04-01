@@ -53,9 +53,9 @@ export default async function HomePage() {
 
         <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
           {[
-            { icon: '⚖️', title: 'Smart scaling', desc: 'Fractions, mixed numbers, decimals, and colloquial amounts like "a pinch" — all scaled correctly.' },
-            { icon: '👥', title: 'Team sharing', desc: 'Share recipes with employees. Set view-only or edit access per person, just like Google Drive.' },
-            { icon: '💰', title: 'Cost tracking', desc: 'Add per-ingredient costs and instantly see total cost and cost per serving for any event.' },
+            { icon: '⚖️', title: 'Smart scaling', desc: 'Handles fractions, mixed numbers, and colloquial amounts like "a pinch" — scaled correctly every time.' },
+            { icon: '👥', title: 'Team sharing', desc: 'Share recipes with your staff. Set view-only or edit access per person.' },
+            { icon: '💰', title: 'Cost tracking', desc: 'Add per-ingredient costs and instantly see total recipe cost and cost per serving.' },
           ].map(f => (
             <div key={f.title} className="bg-white border border-stone-200 rounded-xl p-5">
               <div className="text-2xl mb-2">{f.icon}</div>

@@ -124,8 +124,9 @@ function fractionStringToDouble(s: string): number {
 /**
  * Converts a decimal to a fraction string.
  * Returns a mixed number string if > 1 (e.g. 2.5 → "2 1/2").
- * Ported from PostMultipliedRecipe.java :: convertDecimalToFraction()
- * with floating-point guard added for JS.
+ * Uses best rational approximation with denominator ≤ 64, which correctly
+ * handles thirds (1/3, 2/3), sixths, and other non-dyadic fractions that the
+ * original bit-doubling algorithm (from Java) would produce garbage for.
  */
 function decimalToFraction(decimal: number): string {
   if (decimal === 0) return '0'
@@ -133,44 +134,70 @@ function decimalToFraction(decimal: number): string {
   decimal = Math.abs(decimal)
 
   const whole = Math.floor(decimal)
-  let frac = decimal - whole
+  const frac = decimal - whole
 
   if (frac < 0.001) {
     return isNeg ? `-${whole}` : `${whole}`
   }
 
-  let numerator = frac
-  let denominator = 1
-  const MAX_ITER = 20
-
-  for (let i = 0; i < MAX_ITER && Math.abs(numerator - Math.round(numerator)) > 0.0001; i++) {
-    numerator *= 2
-    denominator *= 2
-    // floating-point guard (key difference from Java port)
-    numerator = Math.round(numerator * 1e10) / 1e10
+  // Find best rational approximation with denominator ≤ 64
+  let bestNum = 1, bestDen = 1, bestErr = Infinity
+  for (let den = 1; den <= 64; den++) {
+    const num = Math.round(frac * den)
+    const err = Math.abs(num / den - frac)
+    if (err < bestErr) {
+      bestErr = err
+      bestNum = num
+      bestDen = den
+    }
+    if (err < 0.0001) break
   }
 
-  numerator = Math.round(numerator)
-  const g = gcd(numerator, denominator)
-  numerator = numerator / g
-  denominator = denominator / g
+  const g = gcd(bestNum, bestDen)
+  bestNum = bestNum / g
+  bestDen = bestDen / g
 
-  const fracStr = `${numerator}/${denominator}`
+  const fracStr = `${bestNum}/${bestDen}`
   const prefix = isNeg ? '-' : ''
 
   if (whole === 0) return `${prefix}${fracStr}`
   return `${prefix}${whole} ${fracStr}`
 }
 
+// Maps ASCII fraction strings to Unicode fraction characters.
+// Covers all fractions with denominators 2, 3, 4, 5, 6, 8 that have Unicode code points.
+const UNICODE_FRACTIONS: Record<string, string> = {
+  '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾',
+  '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘',
+  '1/6': '⅙', '5/6': '⅚',
+  '1/8': '⅛', '3/8': '⅜', '5/8': '⅝', '7/8': '⅞',
+}
+
+/**
+ * Replaces ASCII fraction strings with Unicode equivalents where available.
+ * "2 1/2" → "2½", "1/3" → "⅓", "6 2/3" → "6⅔"
+ * Fractions without a Unicode equivalent (e.g. 1/7) are left as-is.
+ */
+function toUnicodeFractions(s: string): string {
+  // Replace "N frac" (mixed number) — remove the space before the fraction
+  s = s.replace(/(\d+) (\d+\/\d+)/g, (_, whole, frac) => {
+    const u = UNICODE_FRACTIONS[frac]
+    return u ? `${whole}${u}` : `${whole} ${frac}`
+  })
+  // Replace standalone fractions
+  s = s.replace(/\b(\d+\/\d+)\b/g, (frac) => UNICODE_FRACTIONS[frac] ?? frac)
+  return s
+}
+
 /**
  * Formats a scaled quantity for display.
- * Whole numbers returned as integers, fractions as mixed numbers.
+ * Whole numbers returned as integers, fractions as Unicode mixed numbers.
  */
 function formatQty(value: number): string {
   if (value === Math.floor(value) && value >= 0) {
     return String(Math.floor(value))
   }
-  return decimalToFraction(value)
+  return toUnicodeFractions(decimalToFraction(value))
 }
 
 // ─── Colloquial scaling ───────────────────────────────────────────────────────
@@ -252,6 +279,112 @@ function scaleSecondaryQtys(ingredient: string, multiplier: number): string {
   )
 }
 
+// ─── Unit normalization (upgrade, downgrade, compound formatting) ─────────────
+// Handles tsp↔tbsp↔cup, oz↔lb, ml↔L, g↔kg — both directions.
+
+interface UnitPair {
+  small: { aliases: string[]; canonical: string }
+  large: { aliases: string[]; canonical: string }
+  smallPerLarge: number    // e.g. 3 for tsp/tbsp
+  upgradeAt: number        // qty in small >= this → try upgrading to large
+  downgradeAt: number      // qty in large < this → downgrade to small
+  requireCleanUpgrade: boolean
+}
+
+const UNIT_PAIRS: UnitPair[] = [
+  {
+    small: { aliases: ['tsp', 'teaspoon', 'teaspoons'],                                          canonical: 'tsp'  },
+    large: { aliases: ['tbsp', 'tablespoon', 'tablespoons'],                                     canonical: 'tbsp' },
+    smallPerLarge: 3,    upgradeAt: 3,    downgradeAt: 1,    requireCleanUpgrade: true,
+  },
+  {
+    small: { aliases: ['tbsp', 'tablespoon', 'tablespoons'],                                     canonical: 'tbsp' },
+    large: { aliases: ['cup', 'cups'],                                                           canonical: 'cup'  },
+    smallPerLarge: 16,   upgradeAt: 4,    downgradeAt: 0.25, requireCleanUpgrade: true,
+  },
+  {
+    small: { aliases: ['oz', 'ounce', 'ounces'],                                                 canonical: 'oz'   },
+    large: { aliases: ['lb', 'lbs', 'pound', 'pounds'],                                         canonical: 'lb'   },
+    smallPerLarge: 16,   upgradeAt: 16,   downgradeAt: 0.25, requireCleanUpgrade: true,
+  },
+  {
+    small: { aliases: ['ml', 'milliliter', 'milliliters', 'millilitre', 'millilitres'],          canonical: 'ml'   },
+    large: { aliases: ['l', 'L', 'liter', 'liters', 'litre', 'litres'],                         canonical: 'L'    },
+    smallPerLarge: 1000, upgradeAt: 1000, downgradeAt: 0.25, requireCleanUpgrade: true,
+  },
+  {
+    small: { aliases: ['g', 'gram', 'grams'],                                                    canonical: 'g'    },
+    large: { aliases: ['kg', 'kilogram', 'kilograms'],                                           canonical: 'kg'   },
+    smallPerLarge: 1000, upgradeAt: 1000, downgradeAt: 0.1,  requireCleanUpgrade: true,
+  },
+]
+
+/** Returns true if qty's fractional part has denominator ≤ 8 (a real cooking measure). */
+function hasCleanFraction(qty: number): boolean {
+  const frac = qty - Math.floor(qty)
+  if (frac < 0.001 || frac > 0.999) return true
+  for (let den = 2; den <= 8; den++) {
+    if (Math.abs(frac * den - Math.round(frac * den)) < 0.005) return true
+  }
+  return false
+}
+
+/**
+ * Normalizes a scaled quantity to the most appropriate unit, handling both
+ * upgrade (26 tbsp → 1 2/3 cups) and downgrade (1/8 cup → 2 tbsp, 0.5 tbsp → 1 1/2 tsp).
+ * Upgrades only occur when the result has a clean fraction (denominator ≤ 8).
+ */
+function normalizeUnit(qty: number, unit: string): { qty: number; unit: string } {
+  let cur = { qty, unit: unit.toLowerCase() }
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const pair of UNIT_PAIRS) {
+      if (pair.small.aliases.includes(cur.unit) && cur.qty >= pair.upgradeAt) {
+        const newQty = cur.qty / pair.smallPerLarge
+        if (!pair.requireCleanUpgrade || hasCleanFraction(newQty)) {
+          cur = { qty: newQty, unit: pair.large.canonical }
+          changed = true
+          break
+        }
+      } else if (pair.large.aliases.includes(cur.unit) && cur.qty < pair.downgradeAt) {
+        cur = { qty: cur.qty * pair.smallPerLarge, unit: pair.small.canonical }
+        changed = true
+        break
+      }
+    }
+  }
+  return cur
+}
+
+/**
+ * Returns a compound display string when a fractional unit can be expressed
+ * more usably as two unit terms:
+ *   - tbsp with 1/3 or 2/3 fraction → "6 tbsp + 2 tsp"  (1 tbsp = 3 tsp)
+ *   - tsp ≥ 3 with fractional remainder → "2 tbsp + ⅔ tsp"
+ * Returns null if no compound form applies.
+ */
+function formatCompound(qty: number, unit: string): string | null {
+  if (unit === 'tbsp') {
+    const whole = Math.floor(qty)
+    const frac = qty - whole
+    if (frac < 0.001) return null  // exact whole tbsp, no compound needed
+    const remainTsp = frac * 3
+    const remainStr = formatQty(remainTsp)
+    return whole > 0 ? `${whole} tbsp + ${remainStr} tsp` : `${remainStr} tsp`
+  }
+
+  if (unit === 'tsp' && qty >= 3) {
+    const tbsp = Math.floor(qty / 3)
+    const remainTsp = qty - tbsp * 3
+    if (remainTsp < 0.001) return null // exact tbsp — normalizeUnit handles this
+    const remainStr = formatQty(remainTsp)
+    return `${tbsp} tbsp + ${remainStr} tsp`
+  }
+
+  return null
+}
+
 // ─── Main parsing regex (same as Java original) ───────────────────────────────
 // Matches: whole number, mixed number (e.g. "1 1/2"), fraction (e.g. "3/4"), decimal
 const QTY_REGEX = /^(\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+)\s+(.*)/s
@@ -303,17 +436,28 @@ function parseLine(line: string, multiplier: number): ParsedLine {
   }
 
   const scaled = qty * multiplier
-
-  // Pluralize the first word of the ingredient if it's a known unit
   const words = ingredient.split(' ')
-  const firstWord = words[0]
-  const pluralizedUnit = pluralizeUnit(firstWord, scaled)
-  const displayIngredient = pluralizedUnit !== firstWord
+  const { qty: normQty, unit: normUnit } = normalizeUnit(scaled, words[0])
+
+  // Compound format: "6 tbsp + 2 tsp" instead of "6 2/3 tbsp"
+  const compound = formatCompound(normQty, normUnit)
+  if (compound) {
+    return {
+      scaledQty: compound,
+      ingredient: scaleSecondaryQtys(words.slice(1).join(' '), multiplier),
+      originalLine: line,
+      wasScaled: true,
+    }
+  }
+
+  // Standard format
+  const pluralizedUnit = pluralizeUnit(normUnit, normQty)
+  const displayIngredient = pluralizedUnit.toLowerCase() !== words[0].toLowerCase()
     ? [pluralizedUnit, ...words.slice(1)].join(' ')
     : ingredient
 
   return {
-    scaledQty: formatQty(scaled),
+    scaledQty: formatQty(normQty),
     ingredient: scaleSecondaryQtys(displayIngredient, multiplier),
     originalLine: line,
     wasScaled: true,
@@ -333,11 +477,11 @@ export function scaleIngredients(
 ): ParsedLine[] {
   const lines = ingredientsText.split('\n')
 
-  // Skip conversion if servings are equal (README #1)
+  // Skip conversion if servings are equal, but still apply Unicode fraction display
   if (originalServings === desiredServings) {
     return lines.map(line => ({
       scaledQty: '',
-      ingredient: line.trim(),
+      ingredient: toUnicodeFractions(line.trim()),
       originalLine: line,
       wasScaled: false,
       note: 'Servings unchanged',
@@ -362,28 +506,36 @@ export function scaleInstructions(
   if (originalServings === desiredServings) return instructions
   const multiplier = desiredServings / originalServings
 
-  // Replace numeric quantities in instructions (whole, mixed, fraction, decimal)
-  return instructions.replace(
-    /\b(\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+)\b/gm,
-    (match) => {
-      try {
-        let value: number
-        if (match.includes(' ')) {
-          const [w, f] = match.split(' ')
-          value = parseFloat(w) + fractionStringToDouble(f)
-        } else if (match.includes('/')) {
-          value = fractionStringToDouble(match)
-        } else {
-          value = parseFloat(match)
-          // Don't scale years, temperatures >200, or other large non-qty numbers
-          if (value > 200 || value < 0.01) return match
+  // Process line by line to avoid scaling list markers (1. 2. 3) etc.)
+  return instructions.split('\n').map(line => {
+    // Preserve leading list markers: "1. ", "2) ", "3. " etc.
+    const markerMatch = line.match(/^(\s*\d+[.)]\s+)/)
+    const marker = markerMatch ? markerMatch[1] : ''
+    const content = line.slice(marker.length)
+
+    const scaledContent = content.replace(
+      /\b(\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+)\b/g,
+      (match) => {
+        try {
+          let value: number
+          if (match.includes(' ')) {
+            const [w, f] = match.split(' ')
+            value = parseFloat(w) + fractionStringToDouble(f)
+          } else if (match.includes('/')) {
+            value = fractionStringToDouble(match)
+          } else {
+            value = parseFloat(match)
+            // Don't scale years, temperatures >200, or other large non-qty numbers
+            if (value > 200 || value < 0.01) return match
+          }
+          return formatQty(value * multiplier)
+        } catch {
+          return match
         }
-        return formatQty(value * multiplier)
-      } catch {
-        return match
       }
-    }
-  )
+    )
+    return marker + scaledContent
+  }).join('\n')
 }
 
 /**

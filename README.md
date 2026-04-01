@@ -4,14 +4,14 @@ A recipe scaling tool for chefs and catering professionals. Scale ingredients up
 
 **Live:** [recipemultiplier.celiaho.com](https://recipemultiplier.celiaho.com) · deployed on Vercel
 
-> **Beta:** This app is in active development. Known issue: in some cases, only the first quantity on an ingredient line is scaled. Review scaled results before use.
+> **Beta:** This app is in active development. Review scaled results before use.
 
 ---
 
 ## What it does
 
-- **Scale ingredients** — handles fractions, mixed numbers, decimals, and colloquial amounts like "a pinch" or "a handful"
-- **Import from URL** — paste a link from AllRecipes, NYT Cooking, Serious Eats, or any Schema.org-compliant recipe site
+- **Scale ingredients** — handles fractions, mixed numbers, decimals, colloquial amounts like "a pinch", and automatic unit conversion (e.g. 26 tbsp → 1⅔ cups)
+- **Import from URL** — paste a link from AllRecipes, NYT Cooking, Serious Eats, or most major recipe websites
 - **Track costs** — add per-ingredient costs and see total cost + cost per serving
 - **Share with your team** — Google Drive-style per-recipe permissions (view or edit access per person)
 - **Chef notes** — private notes visible only to the recipe owner

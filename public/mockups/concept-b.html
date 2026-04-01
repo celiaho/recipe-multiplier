@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept B — Chef's Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #F7F7F4; color: #111; }
+
+  /* NAV */
+  nav { background: #111; padding: 0 2.5rem; height: 62px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: white; display: flex; align-items: center; gap: 0.6rem; }
+  .nav-logo .beta { font-family: 'DM Sans', sans-serif; font-size: 0.65rem; font-weight: 600; background: rgba(255,255,255,0.15); color: #ccc; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .nav-links { display: flex; align-items: center; gap: 1.25rem; font-size: 0.875rem; }
+  .nav-links a { color: #ccc; text-decoration: none; font-weight: 500; }
+  .btn-nav { background: #5CB85C; color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+
+  /* HERO */
+  .hero { background: #111; padding: 6rem 2rem 5rem; text-align: center; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(92,184,92,0.15); color: #7DD87D; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.3rem 0.9rem; border-radius: 99px; border: 1px solid rgba(92,184,92,0.3); margin-bottom: 2rem; }
+  .hero h1 { font-family: 'DM Serif Display', serif; font-size: 4rem; line-height: 1.1; color: white; max-width: 700px; margin: 0 auto 1.5rem; }
+  .hero h1 em { font-style: italic; color: #5CB85C; }
+  .hero p { font-size: 1.05rem; color: #999; line-height: 1.75; max-width: 500px; margin: 0 auto 3rem; }
+  .hero-actions { display: flex; gap: 1rem; justify-content: center; }
+  .btn-hero { background: #5CB85C; color: white; padding: 0.9rem 2.2rem; border-radius: 8px; font-weight: 600; font-size: 1rem; text-decoration: none; border: none; }
+  .btn-hero-ghost { background: transparent; color: white; padding: 0.9rem 2.2rem; border-radius: 8px; font-weight: 600; font-size: 1rem; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); }
+
+  /* CONTENT SECTION */
+  .content { background: #F7F7F4; }
+
+  /* STATS BAR */
+  .stats { display: flex; justify-content: center; gap: 4rem; padding: 3rem 2rem; border-bottom: 1px solid #E5E5E0; }
+  .stat { text-align: center; }
+  .stat-number { font-family: 'DM Serif Display', serif; font-size: 2.2rem; color: #111; }
+  .stat-label { font-size: 0.8rem; color: #888; font-weight: 500; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* FEATURES */
+  .features { max-width: 950px; margin: 0 auto; padding: 4rem 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .feature-card { background: white; border: 1px solid #E5E5E0; border-radius: 12px; padding: 2rem 1.75rem; transition: box-shadow 0.2s; }
+  .feature-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .feature-num { font-family: 'DM Serif Display', serif; font-size: 2rem; color: #E0E0DB; margin-bottom: 1rem; }
+  .feature-card h3 { font-size: 1rem; font-weight: 600; color: #111; margin-bottom: 0.6rem; }
+  .feature-card p { font-size: 0.875rem; color: #666; line-height: 1.65; }
+
+  /* APP PREVIEW */
+  .app-preview-section { background: #1A1A1A; padding: 5rem 2rem; }
+  .app-preview-section h2 { font-family: 'DM Serif Display', serif; text-align: center; font-size: 2.2rem; color: white; margin-bottom: 0.75rem; }
+  .app-preview-section .sub { text-align: center; color: #777; font-size: 0.95rem; margin-bottom: 3rem; }
+  .app-window { max-width: 680px; margin: 0 auto; background: #F7F7F4; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.5); }
+  .window-bar { background: #2A2A2A; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-red { background: #FF5F57; }
+  .dot-yellow { background: #FFBD2E; }
+  .dot-green { background: #28C840; }
+  .window-body { padding: 2rem; }
+  .window-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: #111; margin-bottom: 1.5rem; }
+  .form-label { font-size: 0.75rem; font-weight: 600; color: #888; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.35rem; display: block; }
+  .form-input { width: 100%; background: white; border: 1px solid #E0E0DB; border-radius: 8px; padding: 0.7rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: #111; margin-bottom: 1.25rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-textarea { width: 100%; background: white; border: 1px solid #E0E0DB; border-radius: 8px; padding: 0.7rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: #111; height: 90px; margin-bottom: 1.25rem; resize: none; }
+  .scale-btn { width: 100%; background: #111; color: white; border: none; padding: 0.85rem; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+
+  .concept-label { background: #111; color: #5CB85C; text-align: center; padding: 0.5rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+<div class="concept-label">CONCEPT B — "CHEF'S TABLE" — Bold, premium, professional</div>
+
+<nav>
+  <div class="nav-logo">🍴 Recipe Multiplier <span class="beta">Beta</span></div>
+  <div class="nav-links">
+    <a href="#">My Recipes</a>
+    <button class="btn-nav">+ New Recipe</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">⚡ Built for catering professionals</div>
+  <h1>Scale recipes.<br><em>Run better events.</em></h1>
+  <p>Stop doing the math in your head. Scale any recipe instantly, track your food costs, and share with your team.</p>
+  <div class="hero-actions">
+    <a href="#" class="btn-hero">Get started free →</a>
+    <a href="#" class="btn-hero-ghost">Log in</a>
+  </div>
+</div>
+
+<div class="content">
+  <div class="stats">
+    <div class="stat"><div class="stat-number">∞</div><div class="stat-label">Recipes stored</div></div>
+    <div class="stat"><div class="stat-number">⅛ → 8×</div><div class="stat-label">Any scale factor</div></div>
+    <div class="stat"><div class="stat-number">Free</div><div class="stat-label">During beta</div></div>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-num">01</div>
+      <h3>Smart scaling</h3>
+      <p>Fractions, mixed numbers, decimals, and colloquial amounts like "a pinch" — all handled correctly.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">02</div>
+      <h3>Team sharing</h3>
+      <p>Per-recipe permissions. Share with view or edit access per person — no shared passwords.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">03</div>
+      <h3>Cost tracking</h3>
+      <p>Add ingredient costs and get total + per-serving price automatically for any event size.</p>
+    </div>
+  </div>
+</div>
+
+<div class="app-preview-section">
+  <h2>Simple as it looks</h2>
+  <p class="sub">Paste your ingredients, set your servings, done.</p>
+  <div class="app-window">
+    <div class="window-bar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+    </div>
+    <div class="window-body">
+      <div class="window-title">New recipe</div>
+      <label class="form-label">Recipe name</label>
+      <input class="form-input" type="text" value="Roast Chicken with Herbs">
+      <div class="form-row">
+        <div>
+          <label class="form-label">Original servings</label>
+          <input class="form-input" type="text" value="4">
+        </div>
+        <div>
+          <label class="form-label">Desired servings</label>
+          <input class="form-input" type="text" value="24">
+        </div>
+      </div>
+      <label class="form-label">Ingredients</label>
+      <textarea class="form-textarea">3 lbs chicken thighs
+2 tbsp olive oil
+4 cloves garlic, minced
+1 1/2 tsp fresh thyme
+1/2 tsp black pepper</textarea>
+      <button class="scale-btn">Scale recipe →</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

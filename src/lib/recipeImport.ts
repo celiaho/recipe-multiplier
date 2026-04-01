@@ -193,7 +193,7 @@ export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
 
     if (!response.ok) {
       const msg = response.status === 403
-        ? 'This site blocks automated access (HTTP 403). Food Network, and some other major media sites do this. Try copying the ingredients manually.'
+        ? 'This site blocks automated access. Try copying the ingredients and using the Enter your ingredients tab instead.'
         : `Could not fetch that URL (HTTP ${response.status}). Try copying the ingredients manually.`
       return { success: false, error: msg }
     }

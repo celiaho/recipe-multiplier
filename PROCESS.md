@@ -211,7 +211,7 @@ Added in this session:
 
 ## What I Would Do Next
 
-- **Phase 2:** Unit conversion (16 oz → 1 lb), shopping list (combine ingredients from multiple recipes), duplicate recipe
+- **Phase 2:** Shopping list (combine ingredients from multiple recipes), duplicate recipe, save costs button on detail page
 - **Phase 3:** Invite by email for non-registered users
 - **Tests:** Port `ParseFractionStringTest.java` to a proper Jest test suite for `recipeLogic.ts` — this is a natural next step given the fraction logic is the most complex part
 
@@ -235,6 +235,64 @@ Added in this session:
 - Better model: store a unit price per ingredient (e.g., chicken breast $2.00/lb, kosher salt $5.00/32 oz), then derive cost from the scaled quantity automatically.
 - Long-term: sync unit prices from distributor or supermarket price APIs/databases (e.g., US Foods, Sysco, Instacart API). This would make cost tracking genuinely useful for catering businesses doing event pricing.
 - Requires: schema change to add a `ingredient_prices` table (or price metadata per ingredient), UI to enter/manage prices, and a cost calculation engine that understands units.
+
+---
+
+## Scaling Logic & UI Improvements Session (2026-03-31)
+
+### Landing page redesign mockup (`public/mockups/concept-c.html`)
+
+Designed and implemented "Concept C — Fresh & Modern" as a static mockup (not yet live):
+- New hero with cleaner layout and updated feature card copy
+- Replaced the separate "input methods" bar and app preview section with a single **tabbed "See it in action" section** — 3 tabs (Import from URL → Enter your ingredients → Scaled results) using button-driven transitions; all form inputs non-interactive (pointer-events: none)
+- Nav updated to show logged-out state (Log in / Sign up)
+- All scaled quantities verified accurate at 6→80 servings (13.333× multiplier)
+
+### Landing page copy (`src/app/page.tsx`)
+
+Updated all three feature card descriptions to match approved mockup:
+- Smart scaling: added "colloquial amounts like 'a pinch'"
+- Team sharing: removed "just like Google Drive"
+- Cost tracking: removed "for any event" (inaccurate — app is per-recipe, not event-level)
+
+### Major scaling logic rewrite (`src/lib/recipeLogic.ts`)
+
+**`decimalToFraction` — replaced bit-doubling with best rational approximation**
+The Java-ported algorithm only resolved dyadic fractions (1/2, 1/4, 1/8 etc.); fractions like 1/3 or 2/3 produced absurd outputs (349525/1048576). Replaced with a denominator-sweep (1–64) that finds the closest rational:
+```typescript
+for (let den = 1; den <= 64; den++) {
+  const num = Math.round(frac * den)
+  const err = Math.abs(num / den - frac)
+  if (err < bestErr) { bestErr = err; bestNum = num; bestDen = den }
+  if (err < 0.0001) break
+}
+```
+Result: 2/3 tbsp now correctly shows as "⅔ tbsp" instead of garbage.
+
+**Unicode fractions (`toUnicodeFractions`, updated `formatQty`)**
+Added a lookup map covering denominators 2, 3, 4, 5, 6, 8. ASCII fractions in `formatQty` output are converted to Unicode at the end (e.g., "2 1/2" → "2½", "1/3" → "⅓"). Applied in both the scaled and unchanged-servings paths.
+
+**Bidirectional unit conversion (`UNIT_PAIRS`, `normalizeUnit`)**
+Implemented up/down conversion for English and metric units:
+- Upgrades: tsp→tbsp→cup, oz→lb, ml→L, g→kg (only when result has a clean fraction, denominator ≤ 8)
+- Downgrades: cup→tbsp at <0.25 cup, tbsp→tsp at <1 tbsp, lb→oz at <0.25 lb, L→ml at <0.25 L, kg→g at <0.1 kg
+- fl oz excluded (conflicts with weight oz; uncommon in US recipes — deferred)
+
+**Compound unit formatting (`formatCompound`)**
+Any fractional tbsp now always compounds to `X tbsp + Y tsp` (not just whole-tsp fractions). The tsp remainder can itself be fractional (e.g., `1⅗ tbsp` → `1 tbsp + 1⅘ tsp`). Likewise, tsp ≥ 3 with a remainder splits into `X tbsp + Y tsp`.
+
+### Bug fixes
+
+**Unicode fractions missing for unchanged servings**
+The unchanged-servings early-return path in `scaleIngredients` bypassed `toUnicodeFractions`. Fixed: now applies Unicode conversion there too.
+
+**Instructions scaling list markers**
+`scaleInstructions` was applying the number-scaling regex globally, so step numbers (`1.`, `2.`, `3)`) were being scaled along with recipe quantities. Fixed by splitting into lines, stripping leading list markers before scaling, and restoring them afterward.
+
+### UX copy improvements
+
+- URL import error for blocked sites (e.g. Food Network): now reads "Try copying the ingredients and using the Enter your ingredients tab instead" instead of a dead-end message
+- URL import tab hint text: updated to "Works with most major recipe websites. Some sites (e.g. Food Network) block automated access."
 
 ---
 

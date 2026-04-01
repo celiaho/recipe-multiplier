@@ -195,7 +195,7 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
 
       {tab === 'url' && (
         <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-3">
-          <p className="text-sm text-stone-600">Paste a link from AllRecipes, NYT Cooking, Serious Eats, and most major recipe sites.</p>
+          <p className="text-sm text-stone-600">Works with most major recipe websites. Some sites (e.g. Food Network) block automated access.</p>
           <div className="flex gap-2">
             <input
               type="url"
