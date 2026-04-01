@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/Navbar'
+import { TourSection } from '@/components/TourSection'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -15,56 +16,97 @@ export default async function HomePage() {
   return (
     <>
       <Navbar profile={profile} email={user?.email} />
-      <main className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-4xl font-bold text-stone-900 leading-tight">
+
+      {/* HERO */}
+      <section
+        className="relative overflow-hidden text-center px-8 pt-20 pb-16"
+        style={{ background: 'linear-gradient(160deg, #F0FDF4 0%, #ECFDF5 40%, #F0FDFA 100%)' }}
+      >
+        {/* Decorative blobs */}
+        <div
+          className="absolute -top-16 -right-16 w-72 h-72 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(134,239,172,0.3) 0%, transparent 70%)' }}
+        />
+        <div
+          className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(110,231,183,0.2) 0%, transparent 70%)' }}
+        />
+
+        {/* Pill badge */}
+        <div className="inline-flex items-center gap-2 bg-white border border-green-200 text-green-600 text-xs font-bold px-4 py-1.5 rounded-full mb-7 shadow-sm">
+          🍽️ Built for chefs and catering professionals
+        </div>
+
+        {/* Headline */}
+        <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight text-gray-900 max-w-2xl mx-auto mb-5 tracking-tight">
           Scale any recipe.<br />
-          <span className="text-emerald-600">Save, share, and cost it.</span>
+          <span className="text-green-600">In seconds.</span>
         </h1>
-        <p className="mt-4 text-lg text-stone-500 max-w-xl mx-auto">
-          Built for chefs and catering professionals. Scale ingredients up or down,
-          track costs per serving, and share recipes with your team — with view or edit access.
+
+        {/* Subheadline */}
+        <p className="text-lg text-gray-500 leading-relaxed max-w-lg mx-auto mb-10 font-medium">
+          Stop doing ingredient math by hand. Scale up or down, track costs, and share recipes with your whole team.
         </p>
 
-        <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+        {/* CTAs */}
+        <div className="flex gap-3 justify-center flex-wrap">
           {user ? (
             <>
-              <Link href="/recipes/new"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold text-base transition-colors">
+              <Link
+                href="/recipes/new"
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-full font-bold text-base transition-colors"
+                style={{ boxShadow: '0 4px 14px rgba(22,163,74,0.35)' }}
+              >
                 Scale a recipe →
               </Link>
-              <Link href="/recipes"
-                className="border border-stone-300 hover:border-stone-400 text-stone-700 px-6 py-3 rounded-xl font-semibold text-base transition-colors">
+              <Link
+                href="/recipes"
+                className="bg-white hover:bg-gray-50 text-gray-700 px-8 py-3.5 rounded-full font-bold text-base border border-gray-200 shadow-sm transition-colors"
+              >
                 My recipes
               </Link>
             </>
           ) : (
             <>
-              <Link href="/signup"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold text-base transition-colors">
+              <Link
+                href="/signup"
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-full font-bold text-base transition-colors"
+                style={{ boxShadow: '0 4px 14px rgba(22,163,74,0.35)' }}
+              >
                 Get started free →
               </Link>
-              <Link href="/login"
-                className="border border-stone-300 hover:border-stone-400 text-stone-700 px-6 py-3 rounded-xl font-semibold text-base transition-colors">
+              <Link
+                href="/login"
+                className="bg-white hover:bg-gray-50 text-gray-700 px-8 py-3.5 rounded-full font-bold text-base border border-gray-200 shadow-sm transition-colors"
+              >
                 Log in
               </Link>
             </>
           )}
         </div>
+      </section>
 
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+      {/* FEATURES */}
+      <section className="bg-white">
+        <div className="max-w-5xl mx-auto px-8 py-20 grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
             { icon: '⚖️', title: 'Smart scaling', desc: 'Handles fractions, mixed numbers, and colloquial amounts like "a pinch" — scaled correctly every time.' },
             { icon: '👥', title: 'Team sharing', desc: 'Share recipes with your staff. Set view-only or edit access per person.' },
             { icon: '💰', title: 'Cost tracking', desc: 'Add per-ingredient costs and instantly see total recipe cost and cost per serving.' },
           ].map(f => (
-            <div key={f.title} className="bg-white border border-stone-200 rounded-xl p-5">
-              <div className="text-2xl mb-2">{f.icon}</div>
-              <h3 className="font-semibold text-stone-800">{f.title}</h3>
-              <p className="text-sm text-stone-500 mt-1">{f.desc}</p>
+            <div key={f.title} className="bg-gray-50 border border-gray-100 rounded-3xl p-8">
+              <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-xl mb-5">
+                {f.icon}
+              </div>
+              <h3 className="text-base font-bold text-gray-900 mb-2">{f.title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
-      </main>
+      </section>
+
+      {/* TABBED TOUR */}
+      <TourSection />
     </>
   )
 }
