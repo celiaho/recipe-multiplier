@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { computeCosts, formatCost, buildEmailBody, type ParsedLine } from '@/lib/recipeLogic'
+import { toWeightQty, getIngredientName } from '@/lib/weightConversion'
+
+type DisplayMode = 'both' | 'weight' | 'volume'
 
 interface RecipeResultsProps {
   recipeName: string
@@ -21,7 +24,19 @@ interface RecipeResultsProps {
   sourceUrl?: string | null
   chefNotes?: string | null
   showChefNotes?: boolean
+  /** Initial display mode — driven by per-recipe or per-profile preference. */
+  displayMode?: DisplayMode
+  /** Provide to enable "Save for this recipe" button. */
+  recipeId?: string
 }
+
+const TOOLTIP_TEXT =
+  'Weight equivalents are estimated using density tables for common culinary ingredients ' +
+  '(e.g. 1 cup all-purpose flour ≈ 125 g, 1 tbsp olive oil ≈ 14 g). ' +
+  'Count-based items like garlic cloves use typical average weights. ' +
+  'Unlisted ingredients show a blank weight cell. ' +
+  'Actual values may vary by brand, grind, or how an ingredient is packed. ' +
+  'Verify with a kitchen scale if precision matters.'
 
 export function RecipeResults({
   recipeName, originalServings, desiredServings,
@@ -29,10 +44,15 @@ export function RecipeResults({
   costMap, onCostChange = () => {},
   onSave, onBack, saving,
   isOwner = true, recipeInfo, sourceName, author, sourceUrl, chefNotes, showChefNotes = true,
+  displayMode = 'volume',
+  recipeId,
 }: RecipeResultsProps) {
   const [checked, setChecked] = useState<Record<number, boolean>>({})
   const [showCosts, setShowCosts] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [currentMode, setCurrentMode] = useState<DisplayMode>(displayMode)
+  const [savingPref, setSavingPref] = useState(false)
+  const [prefSaved, setPrefSaved] = useState(false)
 
   const multiplier = (desiredServings / originalServings)
   const multiplierStr = multiplier.toFixed(2).replace(/\.?0+$/, '')
@@ -43,6 +63,8 @@ export function RecipeResults({
   )
 
   const hasCosts = totalCost > 0
+  const showWeightCol = currentMode === 'both' || currentMode === 'weight'
+  const showVolumeCol = currentMode === 'both' || currentMode === 'volume'
 
   function handleCopy() {
     const text = scaledLines
@@ -65,6 +87,19 @@ export function RecipeResults({
     })
     const subject = `${recipeName} — scaled to ${desiredServings} servings`
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank')
+  }
+
+  async function handleSavePref() {
+    if (!recipeId) return
+    setSavingPref(true)
+    await fetch(`/api/recipes/${recipeId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_pref: currentMode }),
+    })
+    setSavingPref(false)
+    setPrefSaved(true)
+    setTimeout(() => setPrefSaved(false), 3000)
   }
 
   return (
@@ -138,45 +173,166 @@ export function RecipeResults({
 
       {/* Ingredients */}
       <section>
-        <h2 className="font-semibold text-stone-700 text-sm uppercase tracking-wide mb-3">
-          Scaled Ingredients
-        </h2>
-        <ul className="space-y-2">
-          {scaledLines.map((line, i) => (
-            <li key={i} className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={!!checked[i]}
-                onChange={() => setChecked(s => ({ ...s, [i]: !s[i] }))}
-                className="mt-0.5 h-4 w-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 shrink-0 print:hidden"
-              />
-              <span className={`flex-1 text-sm ${checked[i] ? 'line-through text-stone-400' : 'text-stone-800'}`}>
-                {line.wasScaled ? (
-                  <><strong>{line.scaledQty}</strong> {line.ingredient}</>
-                ) : (
-                  line.ingredient
-                )}
-                {line.note && (
-                  <span className="text-xs text-stone-400 ml-2 italic">{line.note}</span>
-                )}
-              </span>
-              {showCosts && (
-                <div className="flex items-center gap-1 shrink-0 print:hidden">
-                  <span className="text-xs text-stone-400">$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={costMap[i] ?? ''}
-                    onChange={e => onCostChange(i, e.target.value)}
-                    className="w-20 border border-stone-200 rounded px-2 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                  />
-                </div>
+        <div className="flex items-center justify-between gap-3 mb-3 print:hidden flex-wrap gap-y-2">
+          <h2 className="font-semibold text-stone-700 text-sm uppercase tracking-wide">
+            Scaled Ingredients
+          </h2>
+
+          {/* Display mode segmented control + account link */}
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2">
+              <div className="flex bg-stone-100 rounded-lg p-0.5 text-xs font-medium">
+                {(['weight', 'volume', 'both'] as DisplayMode[]).map(mode => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => { setCurrentMode(mode); setPrefSaved(false) }}
+                    className={`px-3 py-1 rounded-md transition-colors capitalize ${
+                      currentMode === mode
+                        ? 'bg-white shadow text-stone-800'
+                        : 'text-stone-500 hover:text-stone-700'
+                    }`}
+                  >
+                    {mode === 'weight' ? '⚖ Weight' : mode === 'volume' ? '📏 Volume' : 'Both'}
+                  </button>
+                ))}
+              </div>
+              {showWeightCol && (
+                <button
+                  type="button"
+                  title={TOOLTIP_TEXT}
+                  className="text-stone-400 hover:text-stone-600 text-sm leading-none transition-colors"
+                  aria-label="About weight estimates"
+                >
+                  ⓘ
+                </button>
               )}
-            </li>
-          ))}
+            </div>
+            {showWeightCol && (
+              <a href="/account" className="text-xs text-stone-400 hover:text-stone-600 transition-colors">
+                Manage default in Account Settings →
+              </a>
+            )}
+          </div>
+        </div>
+
+        <ul className="space-y-2">
+          {scaledLines.map((line, i) => {
+            const weightResult = showWeightCol && line.wasScaled
+              ? toWeightQty(line.scaledQty, line.ingredient)
+              : null
+            const weightDisplay = weightResult
+              ? `${weightResult.approx ? '~' : ''}${weightResult.display}`
+              : null
+            const ingredientName = getIngredientName(line.ingredient)
+            const volumeDisplay = line.wasScaled
+              ? `${line.scaledQty} ${line.ingredient}`
+              : line.ingredient
+
+            // For "both" mode: split volume display into qty+unit (muted) and name (black).
+            // Compound: unit is embedded in scaledQty ("6 tbsp + 2 tsp"), ingredient is just the name.
+            // Volume/weight unit: first word of ingredient is the unit → strip it for name.
+            // Count/unscaled: scaledQty is the count, ingredient is name+unit together.
+            const isCompound = line.scaledQty.includes(' + ')
+            const unitStripped = ingredientName !== line.ingredient // getIngredientName stripped a unit word
+            const volumeQty = line.wasScaled
+              ? (isCompound ? line.scaledQty : unitStripped ? `${line.scaledQty} ${line.ingredient.split(/\s+/)[0]}` : line.scaledQty)
+              : ''
+            const volumeName = line.wasScaled
+              ? (isCompound || unitStripped ? ingredientName : line.ingredient)
+              : line.ingredient
+
+            return (
+              <li key={i} className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={!!checked[i]}
+                  onChange={() => setChecked(s => ({ ...s, [i]: !s[i] }))}
+                  className="mt-0.5 h-4 w-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 shrink-0 print:hidden"
+                />
+
+                {/* Both mode: true 3-column grid — weight | volume qty+unit | ingredient name */}
+                {currentMode === 'both' && (
+                  <div className={`flex-1 grid grid-cols-[72px_128px_1fr] gap-x-3 text-sm items-baseline min-w-0 ${checked[i] ? 'line-through text-stone-400' : ''}`}>
+                    <span className={`font-bold tabular-nums truncate ${checked[i] ? '' : 'text-stone-700'}`}>
+                      {weightDisplay ?? ''}
+                    </span>
+                    <span className="text-stone-400 truncate">
+                      {volumeQty}
+                    </span>
+                    <span className={checked[i] ? '' : 'text-stone-800'}>
+                      {volumeName}
+                      {line.note && (
+                        <span className="text-xs text-stone-400 ml-2 italic">{line.note}</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                {/* Weight mode: weight col + ingredient name */}
+                {currentMode === 'weight' && (
+                  <span className={`flex-1 text-sm ${checked[i] ? 'line-through text-stone-400' : 'text-stone-800'}`}>
+                    {weightDisplay
+                      ? <><strong>{weightDisplay}</strong>{' '}{ingredientName}</>
+                      : volumeDisplay
+                    }
+                    {line.note && (
+                      <span className="text-xs text-stone-400 ml-2 italic">{line.note}</span>
+                    )}
+                  </span>
+                )}
+
+                {/* Volume mode: existing behavior */}
+                {currentMode === 'volume' && (
+                  <span className={`flex-1 text-sm ${checked[i] ? 'line-through text-stone-400' : 'text-stone-800'}`}>
+                    {line.wasScaled ? (
+                      <><strong>{line.scaledQty}</strong> {line.ingredient}</>
+                    ) : (
+                      line.ingredient
+                    )}
+                    {line.note && (
+                      <span className="text-xs text-stone-400 ml-2 italic">{line.note}</span>
+                    )}
+                  </span>
+                )}
+
+                {showCosts && (
+                  <div className="flex items-center gap-1 shrink-0 print:hidden">
+                    <span className="text-xs text-stone-400">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={costMap[i] ?? ''}
+                      onChange={e => onCostChange(i, e.target.value)}
+                      className="w-20 border border-stone-200 rounded px-2 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    />
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
+
+        {/* Save preference for this recipe */}
+        {showWeightCol && recipeId && (
+          <div className="mt-2 print:hidden">
+            {currentMode !== displayMode && (
+              <button
+                type="button"
+                onClick={handleSavePref}
+                disabled={savingPref}
+                className="text-xs text-emerald-700 hover:text-emerald-900 font-medium transition-colors disabled:opacity-50"
+              >
+                {savingPref ? 'Saving…' : prefSaved ? '✓ Saved for this recipe' : 'Save for this recipe'}
+              </button>
+            )}
+            {currentMode === displayMode && prefSaved && (
+              <span className="text-xs text-stone-500">✓ Preference saved</span>
+            )}
+          </div>
+        )}
 
         {/* Cost summary */}
         {showCosts && hasCosts && (

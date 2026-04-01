@@ -87,8 +87,9 @@ function ResultsPanel() {
         </ul>
       </div>
 
-      {/* Arrow */}
+      {/* Arrow — horizontal on md+, downward on mobile */}
       <div className="hidden md:flex items-start pt-12 text-gray-300 text-2xl px-1">→</div>
+      <div className="flex md:hidden justify-center text-gray-300 text-2xl py-1">↓</div>
 
       {/* Scaled results */}
       <div className="bg-white border border-gray-200 rounded-3xl p-7 shadow-md">

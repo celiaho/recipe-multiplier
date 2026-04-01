@@ -63,6 +63,7 @@ export default async function EditRecipePage({ params }: Params) {
             desiredServings: recipe.desired_servings,
           }}
           isOwner={isOwner}
+          displayMode={(recipe.display_pref ?? profile?.measurement_pref ?? 'volume') as 'both' | 'weight' | 'volume'}
         />
       </main>
     </>

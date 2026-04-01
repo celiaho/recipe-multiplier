@@ -107,6 +107,27 @@ export default async function HomePage() {
 
       {/* TABBED TOUR */}
       <TourSection />
+
+      {/* BOTTOM CTA */}
+      {!user && (
+        <section className="bg-white py-20 px-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
+              Ready to stop doing the math?
+            </h2>
+            <p className="text-gray-500 text-base leading-relaxed mb-8 max-w-md mx-auto">
+              Free to use. No credit card required. Scale your first recipe in under a minute.
+            </p>
+            <Link
+              href="/signup"
+              className="inline-block bg-green-600 hover:bg-green-700 text-white px-10 py-4 rounded-full font-bold text-base transition-colors"
+              style={{ boxShadow: '0 4px 14px rgba(22,163,74,0.35)' }}
+            >
+              Create a free account →
+            </Link>
+          </div>
+        </section>
+      )}
     </>
   )
 }

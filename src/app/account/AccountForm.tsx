@@ -10,6 +10,8 @@ interface AccountFormProps {
   email: string
 }
 
+type DisplayMode = 'both' | 'weight' | 'volume'
+
 export function AccountForm({ profile: initialProfile, email }: AccountFormProps) {
   const supabase = createClient()
   const [profile, setProfile] = useState(initialProfile)
@@ -19,6 +21,9 @@ export function AccountForm({ profile: initialProfile, email }: AccountFormProps
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [measurementPref, setMeasurementPref] = useState<DisplayMode>(initialProfile.measurement_pref ?? 'both')
+  const [savingPref, setSavingPref] = useState(false)
+  const [savedPref, setSavedPref] = useState(false)
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -36,6 +41,19 @@ export function AccountForm({ profile: initialProfile, email }: AccountFormProps
     if (error) setError(error.message)
     else { setSaved(true); setTimeout(() => setSaved(false), 2000) }
     setSaving(false)
+  }
+
+  async function handleSaveMeasurementPref(mode: DisplayMode) {
+    setMeasurementPref(mode)
+    setSavingPref(true)
+    setSavedPref(false)
+    await supabase
+      .from('profiles')
+      .update({ measurement_pref: mode, updated_at: new Date().toISOString() })
+      .eq('id', profile.id)
+    setSavingPref(false)
+    setSavedPref(true)
+    setTimeout(() => setSavedPref(false), 2000)
   }
 
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || undefined
@@ -105,6 +123,39 @@ export function AccountForm({ profile: initialProfile, email }: AccountFormProps
             {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
           </button>
         </form>
+      </section>
+
+      {/* Measurement style */}
+      <section className="bg-white border border-stone-200 rounded-xl p-6">
+        <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-1">Measurement style</h2>
+        <p className="text-xs text-stone-400 mb-4">
+          Sets your default for all recipes. Individual recipes can override this preference.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex bg-stone-100 rounded-lg p-0.5 text-sm font-medium">
+            {(['weight', 'volume', 'both'] as DisplayMode[]).map(mode => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => handleSaveMeasurementPref(mode)}
+                disabled={savingPref}
+                className={`px-4 py-1.5 rounded-md transition-colors capitalize disabled:opacity-50 ${
+                  measurementPref === mode
+                    ? 'bg-white shadow text-stone-800'
+                    : 'text-stone-500 hover:text-stone-700'
+                }`}
+              >
+                {mode === 'weight' ? '⚖ Weight' : mode === 'volume' ? '📏 Volume' : 'Both'}
+              </button>
+            ))}
+          </div>
+          {savedPref && <span className="text-xs text-emerald-600">✓ Saved</span>}
+        </div>
+        <p className="text-xs text-stone-400 mt-3 leading-relaxed">
+          <strong className="text-stone-500">Both</strong> — weight and volume side-by-side (recommended for professional use).{' '}
+          <strong className="text-stone-500">Weight</strong> — grams/kg only.{' '}
+          <strong className="text-stone-500">Volume</strong> — original volume quantities only.
+        </p>
       </section>
     </div>
   )

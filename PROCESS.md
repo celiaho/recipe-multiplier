@@ -211,13 +211,35 @@ Added in this session:
 
 ## What I Would Do Next
 
-- **Phase 2:** Shopping list (combine ingredients from multiple recipes), duplicate recipe, save costs button on detail page
-- **Phase 3:** Invite by email for non-registered users
+- **Phase 2:** USDA FoodData Central seed script (`scripts/seed-ingredient-densities.ts`) to populate `ingredient_densities` table; AI fallback (Claude Haiku) for unlisted ingredients; `/ingredient-densities` read-only lookup page
+- **Phase 3:** Shopping list (combine ingredients from multiple recipes), duplicate recipe, save costs button on detail page
+- **Phase 4:** Invite by email for non-registered users
 - **Tests:** Port `ParseFractionStringTest.java` to a proper Jest test suite for `recipeLogic.ts` — this is a natural next step given the fraction logic is the most complex part
 
 ---
 
 ## Deferred: Feature Requests
+
+**Unit punctuation normalization in scaled output (low priority)**
+- If a user enters "lbs." (with a trailing period) in an ingredient line, the output preserves the period even though it's a formatting artifact, not part of the unit name.
+- Question: should the app silently normalize common unit abbreviations in the displayed output (e.g. "lbs." → "lbs", "tbsp." → "tbsp")?
+- Current behavior: punctuation is stripped for density/weight lookups (so weight conversion works), but the raw ingredient text is displayed as-is.
+- Proposed: apply the same punctuation-stripping normalization to the displayed ingredient text — users would see clean output regardless of how the original recipe was typed.
+- Defer: low surface area bug; normalize during a broader ingredient-text cleanup pass.
+
+**Edit scaled recipe vs. edit original recipe (medium priority)**
+- The ✏️ Edit button on the recipe detail page currently takes the user back to the original (pre-scale) recipe form. There is no way to make ad-hoc edits to the scaled output — e.g. removing an ingredient, adding a note to a specific line, or adjusting a quantity that the scaler got wrong.
+- Two separate editing modes would be useful:
+  1. **Edit original** — what exists today; re-scale from scratch.
+  2. **Edit scaled** — patch individual lines of the scaled output directly, without re-running the scaling logic.
+- These are meaningfully different UX flows. Defer until user feedback clarifies which is more commonly needed and how the two modes should relate (e.g. should a manual scaled-edit be preserved when the original is re-scaled, or discarded?).
+
+**Recipe detail page — scaling summary display (low priority, needs user research)**
+- The landing page tour shows a green pill badge ("✓ Scaled 13.3× · 6 → 80 servings") on the scaled results card, but the live recipe detail page shows the multiplier as plain muted text ("4 → 11 servings (×2.75)").
+- Before designing a treatment, ask real users what information is most useful at a glance: the multiplier, the original→desired count, both, or something else entirely (e.g. a banner only when the scale is extreme).
+- Defer until user feedback is collected.
+
+
 
 **Re-yield saved recipes (medium priority)**
 - Currently, a saved recipe is fixed at the desired serving count it was saved with. To change servings, the user must go back to the form, re-enter everything, and save again.
@@ -235,6 +257,73 @@ Added in this session:
 - Better model: store a unit price per ingredient (e.g., chicken breast $2.00/lb, kosher salt $5.00/32 oz), then derive cost from the scaled quantity automatically.
 - Long-term: sync unit prices from distributor or supermarket price APIs/databases (e.g., US Foods, Sysco, Instacart API). This would make cost tracking genuinely useful for catering businesses doing event pricing.
 - Requires: schema change to add a `ingredient_prices` table (or price metadata per ingredient), UI to enter/manage prices, and a cost calculation engine that understands units.
+
+---
+
+## Weight/Volume Display + Mobile Arrow Fix Session (2026-04-01)
+
+### Weight/volume display mode (Issue 2)
+
+Added a three-way measurement display toggle to `RecipeResults`:
+
+- **Both** (default for new users) — weight column (bold, g/kg) + volume column (muted) side-by-side
+- **Weight** — weight only; falls back to volume display for ingredients with no density match
+- **Volume** — original behavior, unchanged
+
+The mode control is a segmented button group above the ingredients list. When weight is visible, an (i) button shows a tooltip explaining that values are density estimates.
+
+**`src/lib/weightConversion.ts`** — new file (~400 lines) containing:
+- `DENSITIES` — ~130+ ingredient entries (oils, dairy, flours, sweeteners, leaveners, spices, herbs, broths, vinegars, spirits, condiments, grains, etc.) sorted by key length descending for longest-key-wins matching
+- `COUNT_WEIGHTS` — ~60 count-based entries (garlic cloves, eggs, onions, citrus, potatoes, tomatoes, etc.) with grams per unit and an `approx` flag
+- `ML_MAP` — volume unit → mL conversions
+- `G_MAP` — weight unit → gram conversions
+- `UNIT_ALIASES` — normalizes unit words to canonical forms
+- `findDensity(text)` — longest-key-wins g/mL lookup
+- `findCountWeight(text)` — keyword-match g/unit lookup
+- `toWeightQty(scaledQty, ingredientText)` — main export; handles compound ("6 tbsp + 2 tsp"), volume unit, weight unit, and count cases; returns null when no match (weight cell blank)
+- `getIngredientName(ingredientText)` — strips leading volume/weight unit word for weight-only mode display
+- `formatGrams(g)` — formats as integer grams (<1000g) or kg with 1 decimal (≥1000g)
+
+**Phase 1 scope:** hardcoded density table (no API calls, zero latency). Phase 2 will seed from USDA FoodData Central CSVs into the `ingredient_densities` Supabase table with Claude Haiku fallback for unlisted items.
+
+**Density matching strategy:** ingredients not in the table get a blank weight cell — no error, no approximate guess. The user can verify with a kitchen scale if needed.
+
+**Preference persistence:**
+- `profiles.measurement_pref` (new column, default `'both'`) — user's global default
+- `recipes.display_pref` (new column, nullable) — per-recipe override; `NULL` = use profile default
+- Per-recipe save: "Save for this recipe" button in RecipeResults calls `PATCH /api/recipes/[id]` with `{ display_pref }` (now whitelisted in the route handler)
+- Global default: new "Measurement style" section in Account Settings (`AccountForm.tsx`) with matching 3-button segmented control
+
+**Files changed:**
+- `src/lib/weightConversion.ts` — new file
+- `src/types/database.ts` — `Profile.measurement_pref`, `Recipe.display_pref`
+- `src/components/RecipeResults.tsx` — display mode toggle, weight/volume columns, save-pref button
+- `src/app/account/AccountForm.tsx` — Measurement style section
+- `src/app/api/recipes/[id]/route.ts` — `display_pref` whitelisted in PATCH
+- `src/app/recipes/[id]/page.tsx` — passes `displayMode` and `recipeId` to RecipeResults
+- `src/app/recipes/new/page.tsx` — passes `displayMode` from profile to RecipeForm
+- `src/app/recipes/[id]/edit/page.tsx` — passes `displayMode` from recipe/profile to RecipeForm
+- `src/components/RecipeForm.tsx` — accepts and forwards `displayMode` prop
+
+**Supabase schema changes (already applied in SQL Editor):**
+```sql
+ALTER TABLE profiles ADD COLUMN measurement_pref text NOT NULL DEFAULT 'both'
+  CHECK (measurement_pref IN ('both', 'weight', 'volume'));
+ALTER TABLE recipes ADD COLUMN display_pref text DEFAULT NULL
+  CHECK (display_pref IN ('both', 'weight', 'volume'));
+CREATE TABLE ingredient_densities (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  ingredient_key text UNIQUE NOT NULL,
+  grams_per_ml float, grams_per_unit float, approx boolean DEFAULT false,
+  source text DEFAULT 'usda' CHECK (source IN ('usda', 'ai', 'manual')),
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX ON ingredient_densities (ingredient_key);
+```
+
+### Mobile landing page arrow fix
+
+`TourSection.tsx` ResultsPanel: added `<div className="flex md:hidden justify-center text-gray-300 text-2xl py-1">↓</div>` between the two cards, complementing the existing horizontal `→` arrow that is hidden on mobile. Now mobile users see a downward arrow between the "Original recipe" card and the "Scaled results" card.
 
 ---
 

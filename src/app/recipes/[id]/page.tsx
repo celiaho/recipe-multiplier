@@ -98,6 +98,8 @@ export default async function RecipePage({ params }: Params) {
           sourceUrl={recipe.source_url}
           chefNotes={recipe.chef_notes}
           showChefNotes={isOwner}
+          displayMode={(recipe.display_pref ?? profile?.measurement_pref ?? 'volume') as 'both' | 'weight' | 'volume'}
+          recipeId={recipe.id}
         />
       </main>
     </>

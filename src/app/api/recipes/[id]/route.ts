@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const {
     name, source_name, author, source_url, recipe_info, instructions,
     original_ingredients, original_servings, desired_servings,
-    scaled_ingredients, total_cost,
+    scaled_ingredients, total_cost, display_pref,
   } = body
 
   // chef_notes is owner-only — check ownership before allowing it
@@ -64,6 +64,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     ...(desired_servings !== undefined && { desired_servings }),
     ...(scaled_ingredients !== undefined && { scaled_ingredients }),
     ...(total_cost !== undefined && { total_cost }),
+    ...(display_pref !== undefined && { display_pref }),
     ...(isOwner && body.chef_notes !== undefined && { chef_notes: body.chef_notes }),
   }
 

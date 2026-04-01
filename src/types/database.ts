@@ -6,6 +6,7 @@ export interface Profile {
   last_name: string | null
   company_name: string | null
   avatar_url: string | null
+  measurement_pref: 'both' | 'weight' | 'volume'
   updated_at: string
 }
 
@@ -31,6 +32,7 @@ export interface Recipe {
   desired_servings: number
   scaled_ingredients: ScaledIngredient[] | null
   total_cost: number | null
+  display_pref: 'both' | 'weight' | 'volume' | null
   created_at: string
   updated_at: string
 }

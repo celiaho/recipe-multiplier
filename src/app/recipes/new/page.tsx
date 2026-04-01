@@ -18,7 +18,7 @@ export default async function NewRecipePage() {
         <div className="mb-6 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
           <strong>Beta:</strong> Known issue — in some cases, only the first quantity on an ingredient line is scaled. Please review your scaled results before use.
         </div>
-        <RecipeForm isOwner />
+        <RecipeForm isOwner displayMode={profile?.measurement_pref ?? 'volume'} />
       </main>
     </>
   )

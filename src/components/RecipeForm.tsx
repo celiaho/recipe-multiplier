@@ -21,9 +21,11 @@ interface RecipeFormProps {
     desiredServings: number
   }
   isOwner?: boolean
+  /** Initial display mode from profile or recipe preference. */
+  displayMode?: 'both' | 'weight' | 'volume'
 }
 
-export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
+export function RecipeForm({ initialData, isOwner = true, displayMode = 'volume' }: RecipeFormProps) {
   const router = useRouter()
 
   const [tab, setTab] = useState<'type' | 'url'>('type')
@@ -175,6 +177,7 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
         sourceName={sourceName}
         author={author}
         sourceUrl={sourceUrl}
+        displayMode={displayMode}
       />
     )
   }
