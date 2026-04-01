@@ -193,7 +193,7 @@ export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
 
     if (!response.ok) {
       const msg = response.status === 403
-        ? 'This site blocks automated access. Try copying the ingredients and using the Enter your ingredients tab instead.'
+        ? 'Alas, this site blocks automated access. Copy and paste the recipe into the Type/Paste tab instead.'
         : `Could not fetch that URL (HTTP ${response.status}). Try copying the ingredients manually.`
       return { success: false, error: msg }
     }

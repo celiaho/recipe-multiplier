@@ -397,8 +397,21 @@ function parseLine(line: string, multiplier: number): ParsedLine {
   const trimmed = line.trim()
   if (!trimmed) return { scaledQty: '', ingredient: '', originalLine: line, wasScaled: false }
 
+  // Normalize Unicode fractions to ASCII so "¼ cup sugar" and "2½ tbsp" parse correctly.
+  // Step 1: insert space between digit and Unicode fraction (e.g. "2½" → "2 ½")
+  // Step 2: replace Unicode fraction with ASCII (e.g. "¼" → "1/4")
+  // Order matters — doing both in one pass would yield "21/2" from "2½".
+  const unicodeMap: Record<string, string> = {
+    '½': '1/2', '⅓': '1/3', '⅔': '2/3', '¼': '1/4', '¾': '3/4',
+    '⅛': '1/8', '⅜': '3/8', '⅝': '5/8', '⅞': '7/8',
+  }
+  const unicodePattern = /[½⅓⅔¼¾⅛⅜⅝⅞]/g
+  const normalized = trimmed
+    .replace(/(\d)([½⅓⅔¼¾⅛⅜⅝⅞])/g, '$1 $2')
+    .replace(unicodePattern, m => unicodeMap[m])
+
   // Try colloquial first
-  const colloquial = tryScaleColloquial(trimmed, multiplier)
+  const colloquial = tryScaleColloquial(normalized, multiplier)
   if (colloquial) {
     return {
       scaledQty: colloquial.scaledQty,
@@ -409,11 +422,11 @@ function parseLine(line: string, multiplier: number): ParsedLine {
   }
 
   // Standard numeric parse
-  const match = trimmed.match(QTY_REGEX)
+  const match = normalized.match(QTY_REGEX)
   if (!match) {
     return {
       scaledQty: '',
-      ingredient: trimmed,
+      ingredient: normalized,
       originalLine: line,
       wasScaled: false,
       note: 'No quantity found — not scaled',
@@ -515,7 +528,10 @@ export function scaleInstructions(
 
     const scaledContent = content.replace(
       /\b(\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+)\b/g,
-      (match) => {
+      (match, _g1, offset, str) => {
+        // Don't scale cooking times (minutes, hours, seconds, days)
+        const after = str.slice(offset + match.length).match(/^\s*([a-z]+)/i)
+        if (after && /^(minutes?|mins?|hours?|hrs?|seconds?|secs?|days?)$/i.test(after[1])) return match
         try {
           let value: number
           if (match.includes(' ')) {

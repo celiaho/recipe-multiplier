@@ -185,7 +185,7 @@ export function RecipeForm({ initialData, isOwner = true }: RecipeFormProps) {
       <div className="flex gap-1 bg-stone-100 rounded-lg p-1 w-fit">
         <button type="button" onClick={() => setTab('type')}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === 'type' ? 'bg-white shadow text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>
-          Type / paste
+          Type / Paste
         </button>
         <button type="button" onClick={() => setTab('url')}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === 'url' ? 'bg-white shadow text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>
