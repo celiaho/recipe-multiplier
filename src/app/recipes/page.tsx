@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/Navbar'
+import { Footer } from '@/components/Footer'
 import { RecipeList, type OwnRecipe, type SharedRecipe } from '@/components/RecipeList'
 
 export default async function RecipesPage() {
@@ -14,7 +15,7 @@ export default async function RecipesPage() {
   // Own recipes with share counts
   const { data: own } = await supabase
     .from('recipes')
-    .select('*, recipe_shares(id)')
+    .select('*, recipe_shares(id, shared_with, profiles!recipe_shares_shared_with_fkey(first_name, last_name))')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
 
@@ -53,6 +54,7 @@ export default async function RecipesPage() {
           shared={shared as unknown as SharedRecipe[]}
         />
       </main>
+      <Footer />
     </>
   )
 }

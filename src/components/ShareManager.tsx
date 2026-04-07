@@ -17,6 +17,7 @@ export function ShareManager({ recipeId, recipeName }: ShareManagerProps) {
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [confirmingRemove, setConfirmingRemove] = useState<string | null>(null)
 
   async function loadShares() {
     const res = await fetch(`/api/recipes/${recipeId}/shares`)
@@ -87,7 +88,7 @@ export function ShareManager({ recipeId, recipeName }: ShareManagerProps) {
         <select
           value={permission}
           onChange={e => setPermission(e.target.value as Permission)}
-          className="border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+          className="font-sans border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
         >
           <option value="view">Can view</option>
           <option value="edit">Can edit</option>
@@ -131,18 +132,37 @@ export function ShareManager({ recipeId, recipeName }: ShareManagerProps) {
                   <select
                     value={share.permission}
                     onChange={e => updatePermission(share.id, e.target.value as Permission)}
-                    className="text-xs border border-stone-200 rounded-md px-2 py-1 bg-white text-stone-600 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="font-sans text-xs border border-stone-200 rounded-md px-2 py-1 bg-white text-stone-600 focus:outline-none focus:ring-1 focus:ring-emerald-400"
                   >
                     <option value="view">Can view</option>
                     <option value="edit">Can edit</option>
                   </select>
-                  <button
-                    onClick={() => removeShare(share.id)}
-                    className="text-stone-400 hover:text-red-500 transition-colors"
-                    title="Remove access"
-                  >
-                    ✕
-                  </button>
+                  {confirmingRemove === share.id ? (
+                    <div className="flex items-center gap-1 text-xs">
+                      <span className="text-stone-500">Remove?</span>
+                      <button
+                        onClick={() => { removeShare(share.id); setConfirmingRemove(null) }}
+                        className="text-red-500 hover:text-red-700 font-medium transition-colors"
+                      >
+                        Yes
+                      </button>
+                      <span className="text-stone-400">/</span>
+                      <button
+                        onClick={() => setConfirmingRemove(null)}
+                        className="text-stone-500 hover:text-stone-700 transition-colors"
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmingRemove(share.id)}
+                      className="text-stone-400 hover:text-red-500 transition-colors"
+                      title="Remove access"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
               </li>
             ))}

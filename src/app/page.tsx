@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/Navbar'
 import { TourSection } from '@/components/TourSection'
+import { Footer } from '@/components/Footer'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -90,7 +91,7 @@ export default async function HomePage() {
       <section className="bg-white">
         <div className="max-w-5xl mx-auto px-8 py-20 grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { icon: '⚖️', title: 'Smart scaling', desc: 'Handles fractions, mixed numbers, and colloquial amounts like "a pinch" — scaled correctly every time.' },
+            { icon: '⚖️', title: 'Smart scaling', desc: 'Handles fractions, mixed numbers, and colloquial amounts like "a pinch"—scaled correctly every time.' },
             { icon: '👥', title: 'Team sharing', desc: 'Share recipes with your staff. Set view-only or edit access per person.' },
             { icon: '💰', title: 'Cost tracking', desc: 'Add per-ingredient costs and instantly see total recipe cost and cost per serving.' },
           ].map(f => (
@@ -128,6 +129,7 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+      <Footer />
     </>
   )
 }

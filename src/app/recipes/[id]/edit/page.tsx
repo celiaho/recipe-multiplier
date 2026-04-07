@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/Navbar'
+import { Footer } from '@/components/Footer'
 import { RecipeForm } from '@/components/RecipeForm'
 
 type Params = { params: Promise<{ id: string }> }
@@ -66,6 +67,7 @@ export default async function EditRecipePage({ params }: Params) {
           displayMode={(recipe.display_pref ?? profile?.measurement_pref ?? 'volume') as 'both' | 'weight' | 'volume'}
         />
       </main>
+      <Footer />
     </>
   )
 }

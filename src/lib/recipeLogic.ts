@@ -139,6 +139,9 @@ function decimalToFraction(decimal: number): string {
   if (frac < 0.001) {
     return isNeg ? `-${whole}` : `${whole}`
   }
+  if (frac > 0.999) {
+    return isNeg ? `-${whole + 1}` : `${whole + 1}`
+  }
 
   // Find best rational approximation with denominator ≤ 64
   let bestNum = 1, bestDen = 1, bestErr = Infinity
@@ -258,7 +261,7 @@ function tryScaleColloquial(
  */
 function scaleSecondaryQtys(ingredient: string, multiplier: number): string {
   return ingredient.replace(
-    /\b(\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+)\b/gm,
+    /\b(\d+\.\d+|\d+\/\d+|\d+(?:\s+\d+\/\d+)?)\b/gm,
     (m) => {
       try {
         let value: number
@@ -527,7 +530,7 @@ export function scaleInstructions(
     const content = line.slice(marker.length)
 
     const scaledContent = content.replace(
-      /\b(\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+)\b/g,
+      /\b(\d+\.\d+|\d+\/\d+|\d+(?:\s+\d+\/\d+)?)\b/g,
       (match, _g1, offset, str) => {
         // Don't scale cooking times (minutes, hours, seconds, days)
         const after = str.slice(offset + match.length).match(/^\s*([a-z]+)/i)

@@ -635,11 +635,21 @@ export function formatGrams(g: number): string {
  * e.g. "cloves garlic, minced" → "cloves garlic, minced" (count units kept)
  * e.g. "fresh thyme" → "fresh thyme" (no leading unit)
  */
+const STRIP_COUNT_UNITS = new Set([
+  'piece', 'pieces', 'head', 'heads', 'bunch', 'bunches',
+  'sprig', 'sprigs', 'stalk', 'stalks', 'slice', 'slices',
+  'sheet', 'sheets', 'link', 'links', 'knob', 'knobs',
+  'floret', 'florets',
+])
+
 export function getIngredientName(ingredientText: string): string {
   const words = ingredientText.trim().split(/\s+/)
   if (words.length > 1) {
     const canonical = canonicalizeUnit(words[0])
     if (canonical && (canonical in ML_MAP || canonical in G_MAP)) {
+      return words.slice(1).join(' ')
+    }
+    if (STRIP_COUNT_UNITS.has(words[0].toLowerCase())) {
       return words.slice(1).join(' ')
     }
   }

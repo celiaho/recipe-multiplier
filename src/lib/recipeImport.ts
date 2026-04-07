@@ -154,8 +154,8 @@ function extractSchemaRecipe(html: string): ImportedRecipe | null {
         if (prepTime) infoParts.push(`Prep: ${prepTime}`)
         if (cookTime) infoParts.push(`Cook: ${cookTime}`)
         if (totalTime) infoParts.push(`Total: ${totalTime}`)
-        if (obj.recipeCuisine) infoParts.push(`Cuisine: ${String(obj.recipeCuisine)}`)
-        if (obj.recipeCategory) infoParts.push(`Course: ${String(obj.recipeCategory)}`)
+        if (obj.recipeCuisine) infoParts.push(`Cuisine: ${Array.isArray(obj.recipeCuisine) ? obj.recipeCuisine.join(', ') : String(obj.recipeCuisine)}`)
+        if (obj.recipeCategory) infoParts.push(`Course: ${Array.isArray(obj.recipeCategory) ? obj.recipeCategory.join(', ') : String(obj.recipeCategory)}`)
         const recipeInfo = infoParts.length > 0 ? infoParts.join('\n') : null
 
         return { name, author, recipeInfo, ingredients, instructions, originalServings, sourceUrl: '' }

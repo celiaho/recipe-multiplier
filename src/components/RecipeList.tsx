@@ -12,7 +12,10 @@ export interface OwnRecipe {
   original_servings: number
   desired_servings: number
   created_at: string
-  recipe_shares?: { id: string }[]
+  recipe_shares?: { id: string; shared_with: string; profiles: { first_name: string | null; last_name: string | null } | null }[]
+  recipe_info?: string | null
+  original_ingredients?: string | null
+  chef_notes?: string | null
 }
 
 export interface SharedRecipe {
@@ -26,6 +29,8 @@ export interface SharedRecipe {
   my_permission: 'view' | 'edit'
   owner_display_name: string | null
   owner_avatar_url: string | null
+  recipe_info?: string | null
+  original_ingredients?: string | null
 }
 
 interface RecipeListProps {
@@ -36,13 +41,16 @@ interface RecipeListProps {
 export function RecipeList({ own, shared }: RecipeListProps) {
   const [search, setSearch] = useState('')
 
-  function matches(r: { name: string; source_name?: string | null; author?: string | null }) {
+  function matches(r: { name: string; source_name?: string | null; author?: string | null; recipe_info?: string | null; original_ingredients?: string | null; chef_notes?: string | null }) {
     if (!search.trim()) return true
     const q = search.toLowerCase()
     return (
       r.name.toLowerCase().includes(q) ||
       (r.source_name?.toLowerCase().includes(q) ?? false) ||
-      (r.author?.toLowerCase().includes(q) ?? false)
+      (r.author?.toLowerCase().includes(q) ?? false) ||
+      (r.recipe_info?.toLowerCase().includes(q) ?? false) ||
+      (r.original_ingredients?.toLowerCase().includes(q) ?? false) ||
+      (r.chef_notes?.toLowerCase().includes(q) ?? false)
     )
   }
 
@@ -51,13 +59,22 @@ export function RecipeList({ own, shared }: RecipeListProps) {
 
   return (
     <div className="space-y-8">
-      <input
-        type="search"
-        placeholder="Search by recipe name, source, or author…"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-      />
+      <div className="relative">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4 pointer-events-none"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path strokeLinecap="round" d="m21 21-4.35-4.35" />
+        </svg>
+        <input
+          type="search"
+          placeholder="Search by name, ingredients, source…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full border border-stone-300 rounded-lg pl-9 pr-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
 
       <section>
         <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-4">My recipes</h2>
@@ -87,6 +104,7 @@ export function RecipeList({ own, shared }: RecipeListProps) {
                 desiredServings={Number(r.desired_servings)}
                 createdAt={r.created_at}
                 shareCount={Array.isArray(r.recipe_shares) ? r.recipe_shares.length : 0}
+                shareUsers={(r.recipe_shares ?? []).map(s => s.profiles ?? { first_name: null, last_name: null })}
               />
             ))}
           </div>

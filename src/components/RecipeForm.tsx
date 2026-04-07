@@ -178,6 +178,8 @@ export function RecipeForm({ initialData, isOwner = true, displayMode = 'volume'
         author={author}
         sourceUrl={sourceUrl}
         displayMode={displayMode}
+        chefNotes={chefNotes}
+        showChefNotes={isOwner}
       />
     )
   }
@@ -197,15 +199,16 @@ export function RecipeForm({ initialData, isOwner = true, displayMode = 'volume'
       </div>
 
       {tab === 'url' && (
-        <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-3">
-          <p className="text-sm text-stone-600">Works with most major recipe websites. Some sites (e.g. Food Network) block automated access.</p>
+        <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-2">
+          <label className="block text-sm font-medium text-stone-700">Recipe URL*</label>
+          <p className="text-xs text-stone-500">Enter the URL of your recipe here. Works with most major recipe websites; some sites (e.g. Food Network) block automated access.</p>
           <div className="flex gap-2">
             <input
               type="url"
               placeholder="https://..."
               value={importUrl}
               onChange={e => setImportUrl(e.target.value)}
-              className="flex-1 border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 bg-white border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             <button
               type="button"
@@ -221,7 +224,7 @@ export function RecipeForm({ initialData, isOwner = true, displayMode = 'volume'
       )}
 
       {/* Recipe metadata */}
-      <Field label="Recipe name *" error={errors.name}>
+      <Field label="Recipe name*" error={errors.name}>
         <input type="text" value={name} onChange={e => setName(e.target.value)}
           placeholder="e.g. Roast Chicken"
           className={inputClass(!!errors.name)} />
@@ -254,23 +257,26 @@ export function RecipeForm({ initialData, isOwner = true, displayMode = 'volume'
       </Field>
 
       {/* Servings row */}
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Original servings *" error={errors.originalServings}>
+      <div className="grid grid-cols-2 gap-4 items-start">
+        <Field label="Original servings*" error={errors.originalServings}>
           <input type="text" inputMode="decimal" value={originalServings}
             onChange={e => setOriginalServings(e.target.value)}
             placeholder="e.g. 4"
             className={inputClass(!!errors.originalServings)} />
         </Field>
-        <Field label="Desired servings *" error={errors.desiredServings}>
-          <input type="text" inputMode="decimal" value={desiredServings}
-            onChange={e => setDesiredServings(e.target.value)}
-            placeholder="e.g. 12"
-            className={inputClass(!!errors.desiredServings)} />
-        </Field>
+        <div className="bg-stone-50 border border-stone-200 rounded-xl p-3">
+          <Field label="Desired servings*" error={errors.desiredServings}
+            hint="Enter your target yield to scale—or use the original number to save as-is.">
+            <input type="text" inputMode="decimal" value={desiredServings}
+              onChange={e => setDesiredServings(e.target.value)}
+              placeholder="e.g. 12"
+              className={inputClass(!!errors.desiredServings)} />
+          </Field>
+        </div>
       </div>
 
-      {/* Ingredients */}
-      <Field label="Ingredients *" error={errors.originalIngredients}
+      {/* Ingredients*/}
+      <Field label="Ingredients*" error={errors.originalIngredients}
         hint="One ingredient per line. Supports whole numbers, fractions (1/2), mixed numbers (1 1/2), decimals, and colloquial amounts (a pinch, a handful).">
         <textarea value={originalIngredients} onChange={e => setOriginalIngredients(e.target.value)}
           rows={8} placeholder={"2 cups flour\n1 1/2 tsp baking powder\na pinch of salt\n3 large eggs"}
@@ -287,7 +293,7 @@ export function RecipeForm({ initialData, isOwner = true, displayMode = 'volume'
 
       {/* Chef notes — owner only */}
       {isOwner && (
-        <Field label="Chef notes (private — only you can see these)"
+        <Field label="Chef notes (private—only you can see these)"
           hint="Personal notes: ingredient substitutions, adjustments for specific events, etc.">
           <textarea value={chefNotes} onChange={e => setChefNotes(e.target.value)}
             rows={3} placeholder="Double the garlic. Use half the salt for the catering event on the 14th."
@@ -305,7 +311,7 @@ export function RecipeForm({ initialData, isOwner = true, displayMode = 'volume'
 
 function inputClass(hasError: boolean) {
   return `w-full border rounded-lg px-3 py-2 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-    hasError ? 'border-red-400 bg-red-50' : 'border-stone-300'
+    hasError ? 'border-red-400 bg-red-50' : 'border-stone-300 bg-white'
   }`
 }
 

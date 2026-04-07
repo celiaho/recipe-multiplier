@@ -2,6 +2,14 @@ import Link from 'next/link'
 import { Avatar } from './Avatar'
 import type { Permission } from '@/types/database'
 
+function formatCardSharedWith(users: { first_name: string | null; last_name: string | null }[], count: number): string {
+  const names = users.map(u => [u.first_name, u.last_name].filter(Boolean).join(' ')).filter(Boolean)
+  if (names.length === 0) return `Shared with ${count}`
+  if (names.length === 1) return `Shared with ${names[0]}`
+  if (names.length === 2) return `Shared with 2: ${names[0]} and ${names[1]}`
+  return `Shared with ${count}: ${names[0]}, ${names[1]}, ${names[2] ?? ''}${count > 3 ? ' and others' : ''}`
+}
+
 interface RecipeCardProps {
   id: string
   name: string
@@ -16,15 +24,16 @@ interface RecipeCardProps {
   myPermission?: Permission | 'owner'
   isShared?: boolean
   shareCount?: number
+  shareUsers?: { first_name: string | null; last_name: string | null }[]
 }
 
 export function RecipeCard({
   id, name, sourceName, author, originalServings, desiredServings, createdAt,
   ownerDisplayName, ownerAvatarUrl, ownerEmail,
-  myPermission = 'owner', isShared = false, shareCount = 0,
+  myPermission = 'owner', isShared = false, shareCount = 0, shareUsers = [],
 }: RecipeCardProps) {
   const multiplier = (desiredServings / originalServings).toFixed(2).replace(/\.?0+$/, '')
-  const date = new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const date = 'Saved ' + new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
     <Link href={`/recipes/${id}`} className="block group">
@@ -59,16 +68,23 @@ export function RecipeCard({
               <span>{ownerDisplayName ?? ownerEmail.split('@')[0]}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1 text-xs text-stone-400">
-              {shareCount > 0 && (
-                <>
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            shareCount > 0 ? (
+              <div className="flex items-center gap-1 text-xs text-stone-400">
+                <Link
+                  href={`/recipes/${id}/share`}
+                  onClick={e => e.stopPropagation()}
+                  className="hover:text-stone-600 transition-colors shrink-0"
+                  aria-label="Manage sharing"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span>Shared with {shareCount}</span>
-                </>
-              )}
-            </div>
+                </Link>
+                <span>{formatCardSharedWith(shareUsers, shareCount)}</span>
+              </div>
+            ) : (
+              <div />
+            )
           )}
           <span className="text-xs text-stone-400">{date}</span>
         </div>

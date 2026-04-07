@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { computeCosts, formatCost, buildEmailBody, type ParsedLine } from '@/lib/recipeLogic'
 import { toWeightQty, getIngredientName } from '@/lib/weightConversion'
+import { DismissibleCallout } from './DismissibleCallout'
 
 type DisplayMode = 'both' | 'weight' | 'volume'
 
@@ -28,15 +29,33 @@ interface RecipeResultsProps {
   displayMode?: DisplayMode
   /** Provide to enable "Save for this recipe" button. */
   recipeId?: string
+  editHref?: string
+  shareHref?: string
+  deleteButton?: React.ReactNode
+  sharedWith?: string[]
 }
 
-const TOOLTIP_TEXT =
-  'Weight equivalents are estimated using density tables for common culinary ingredients ' +
-  '(e.g. 1 cup all-purpose flour ≈ 125 g, 1 tbsp olive oil ≈ 14 g). ' +
-  'Count-based items like garlic cloves use typical average weights. ' +
-  'Unlisted ingredients show a blank weight cell. ' +
-  'Actual values may vary by brand, grind, or how an ingredient is packed. ' +
-  'Verify with a kitchen scale if precision matters.'
+function formatSharedWith(names: string[]): string {
+  if (names.length === 1) return `Shared with ${names[0]}`
+  if (names.length === 2) return `Shared with 2: ${names[0]} and ${names[1]}`
+  const shown = names.slice(0, 3)
+  return `Shared with ${names.length}: ${shown.slice(0, -1).join(', ')}, ${shown[shown.length - 1]} and others`
+}
+
+const TOOLTIP_CONTENT = (
+  <>
+    Weight equivalents are estimated using{' '}
+    <a href="https://fdc.nal.usda.gov/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
+      USDA FoodData Central
+    </a>{' '}
+    density tables for common culinary ingredients
+    (e.g. 1 cup all-purpose flour ≈ 125 g, 1 tbsp olive oil ≈ 14 g).
+    Count-based items like garlic cloves use typical average weights.
+    Unlisted ingredients show a blank weight cell.
+    Actual values may vary by brand, grind, or how an ingredient is packed.
+    Verify with a kitchen scale if precision matters.
+  </>
+)
 
 export function RecipeResults({
   recipeName, originalServings, desiredServings,
@@ -46,6 +65,7 @@ export function RecipeResults({
   isOwner = true, recipeInfo, sourceName, author, sourceUrl, chefNotes, showChefNotes = true,
   displayMode = 'volume',
   recipeId,
+  editHref, shareHref, deleteButton, sharedWith,
 }: RecipeResultsProps) {
   const [checked, setChecked] = useState<Record<number, boolean>>({})
   const [showCosts, setShowCosts] = useState(false)
@@ -85,7 +105,7 @@ export function RecipeResults({
       instructions: scaledInstructions ?? undefined,
       totalCost: hasCosts ? totalCost : undefined,
     })
-    const subject = `${recipeName} — scaled to ${desiredServings} servings`
+    const subject = `${recipeName}—scaled to ${desiredServings} servings`
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank')
   }
 
@@ -139,7 +159,7 @@ export function RecipeResults({
           )}
           <button onClick={handleCopy}
             className="text-sm border border-stone-300 hover:border-stone-400 text-stone-600 px-3 py-1.5 rounded-lg transition-colors">
-            {copied ? '✓ Copied!' : 'Copy list'}
+            {copied ? '✓ Copied!' : 'Copy ingredients'}
           </button>
           <button onClick={handleEmail}
             className="text-sm border border-stone-300 hover:border-stone-400 text-stone-600 px-3 py-1.5 rounded-lg transition-colors">
@@ -159,20 +179,58 @@ export function RecipeResults({
               {saving ? 'Saving…' : '💾 Save recipe'}
             </button>
           )}
+          {editHref && (
+            <a href={editHref}
+              className="text-sm border border-stone-300 hover:border-stone-400 text-stone-600 px-3 py-1.5 rounded-lg transition-colors">
+              ✏️ Edit
+            </a>
+          )}
+          {shareHref && (
+            <a href={shareHref}
+              className="text-sm border border-stone-300 hover:border-stone-400 text-stone-600 px-3 py-1.5 rounded-lg transition-colors">
+              👥 Share
+            </a>
+          )}
+          {deleteButton}
         </div>
+        {onSave && (
+          <div className="mt-2 print:hidden">
+            <DismissibleCallout storageKey="hint-save-recipe" color="amber">
+              Hit <strong>Save recipe</strong> to add it to My Recipes so you can find it anytime.
+            </DismissibleCallout>
+          </div>
+        )}
+        {sharedWith && sharedWith.length > 0 && shareHref && (
+          <div className="flex items-center gap-1.5 text-xs text-stone-400 mt-2 print:hidden">
+            <a href={shareHref} className="hover:text-stone-600 transition-colors" aria-label="Manage sharing">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </a>
+            <span>{formatSharedWith(sharedWith)}</span>
+          </div>
+        )}
       </div>
 
       {/* Recipe info (timing, cuisine, etc.) */}
       {recipeInfo && (
         <section>
+          <h2 className="font-semibold text-stone-700 text-sm uppercase tracking-wide mb-3 print:hidden">
+            Recipe Info
+          </h2>
           <div className="text-sm text-stone-600 whitespace-pre-wrap bg-stone-50 border border-stone-100 rounded-lg px-4 py-3 leading-relaxed">
-            {recipeInfo}
+            {recipeInfo.replace(/,(?=[^\s])/g, ', ')}
           </div>
         </section>
       )}
 
       {/* Ingredients */}
       <section>
+        <div className="mb-3 print:hidden">
+          <DismissibleCallout storageKey="hint-weight-toggle" color="emerald">
+            Your ingredients are shown in <strong>volume</strong> by default. Toggle to <strong>Weight</strong> or <strong>Both</strong> to see gram/kg estimates —useful for baking. Set your default in Account Settings.
+          </DismissibleCallout>
+        </div>
         <div className="flex items-center justify-between gap-3 mb-3 print:hidden flex-wrap gap-y-2">
           <h2 className="font-semibold text-stone-700 text-sm uppercase tracking-wide">
             Scaled Ingredients
@@ -193,25 +251,30 @@ export function RecipeResults({
                         : 'text-stone-500 hover:text-stone-700'
                     }`}
                   >
-                    {mode === 'weight' ? '⚖ Weight' : mode === 'volume' ? '📏 Volume' : 'Both'}
+                    {mode === 'weight' ? '⚖ Weight' : mode === 'volume' ? '📏 Volume' : '⚖📏 Both'}
                   </button>
                 ))}
               </div>
               {showWeightCol && (
-                <button
-                  type="button"
-                  title={TOOLTIP_TEXT}
-                  className="text-stone-400 hover:text-stone-600 text-sm leading-none transition-colors"
-                  aria-label="About weight estimates"
-                >
-                  ⓘ
-                </button>
+                <div className="relative group">
+                  <button
+                    type="button"
+                    className="text-stone-400 hover:text-stone-600 text-sm leading-none transition-colors"
+                    aria-label="About weight estimates"
+                  >
+                    ⓘ
+                  </button>
+                  <div className="absolute right-0 bottom-full mb-2 w-72 bg-stone-800 text-white text-xs rounded-lg px-3 py-2.5 leading-relaxed hidden group-hover:block z-20 font-sans shadow-lg">
+                    {TOOLTIP_CONTENT}
+                  </div>
+                </div>
               )}
             </div>
             {showWeightCol && (
-              <a href="/account" className="text-xs text-stone-400 hover:text-stone-600 transition-colors">
-                Manage default in Account Settings →
-              </a>
+              <p className="text-xs text-stone-400 mt-0.5">
+                Set your default in{' '}
+                <a href="/account" className="hover:text-stone-600 underline transition-colors">Account Settings</a>.
+              </p>
             )}
           </div>
         </div>
@@ -376,15 +439,19 @@ export function RecipeResults({
       )}
 
       {/* Chef notes — owner only, hidden from print for privacy */}
-      {isOwner && showChefNotes && chefNotes && (
+      {isOwner && showChefNotes && (
         <section className="print:hidden">
           <h2 className="font-semibold text-stone-700 text-sm uppercase tracking-wide mb-2 flex items-center gap-2">
             Chef Notes
             <span className="text-xs font-normal text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full">Private</span>
           </h2>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-stone-700 whitespace-pre-wrap">
-            {chefNotes}
-          </div>
+          {chefNotes ? (
+            <div className="border-l-4 border-amber-300 pl-3 py-1 text-sm text-stone-700 whitespace-pre-wrap">
+              {chefNotes}
+            </div>
+          ) : (
+            <p className="text-sm text-stone-400 italic">No chef notes yet.</p>
+          )}
         </section>
       )}
     </div>

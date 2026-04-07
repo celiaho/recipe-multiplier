@@ -16,7 +16,7 @@ function ImportPanel({ onImport }: { onImport: () => void }) {
   return (
     <div className="bg-white border border-gray-200 rounded-3xl p-10 shadow-md max-w-lg mx-auto">
       <h3 className="text-base font-extrabold text-gray-900 mb-1">Import from a recipe website</h3>
-      <p className="text-xs text-gray-400 mb-6">Paste any recipe URL — we&apos;ll pull the ingredients and servings automatically.</p>
+      <p className="text-xs text-gray-400 mb-6">Paste any recipe URL—we&apos;ll pull the ingredients and servings automatically.</p>
       <div className="flex gap-2 mb-4">
         <input
           type="text"
@@ -44,7 +44,7 @@ function EnterPanel({ onScale }: { onScale: () => void }) {
   return (
     <div className="bg-white border border-gray-200 rounded-3xl p-7 shadow-md max-w-sm mx-auto">
       <h3 className="text-base font-extrabold text-gray-900 mb-1">Enter your ingredient list</h3>
-      <p className="text-xs text-gray-400 mb-5">One ingredient per line — any format works</p>
+      <p className="text-xs text-gray-400 mb-5">One ingredient per line—any format works</p>
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Original servings</label>
@@ -144,7 +144,7 @@ export function TourSection() {
       <div className="max-w-5xl mx-auto">
         <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">See it in action</p>
         <h2 className="text-4xl font-extrabold text-gray-900 text-center leading-tight tracking-tight mb-3">
-          From ingredients to <span className="text-green-600">scaled list</span> — in one click.
+          From ingredients to <span className="text-green-600">scaled list</span>—in one click.
         </h2>
         <p className="text-center text-sm text-gray-500 leading-relaxed max-w-lg mx-auto mb-10">
           Import from a recipe URL or enter your own. Get perfectly scaled quantities in seconds.

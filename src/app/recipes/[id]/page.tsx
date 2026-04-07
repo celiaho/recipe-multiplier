@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/Navbar'
+import { Footer } from '@/components/Footer'
 import { RecipeResults } from '@/components/RecipeResults'
 import { DeleteRecipeButton } from '@/components/DeleteRecipeButton'
 import { scaleIngredients, scaleInstructions } from '@/lib/recipeLogic'
@@ -58,6 +59,22 @@ export default async function RecipePage({ params }: Params) {
     })
   }
 
+  // Fetch share names for owner
+  let sharedWith: string[] | undefined
+  if (isOwner) {
+    const { data: shareRows } = await supabase
+      .from('recipe_shares')
+      .select('profiles!recipe_shares_shared_with_fkey(first_name, last_name)')
+      .eq('recipe_id', id)
+
+    if (shareRows && shareRows.length > 0) {
+      sharedWith = (shareRows as unknown as { profiles: { first_name: string | null; last_name: string | null } | null }[]).map(row => {
+        const p = row.profiles
+        return [p?.first_name, p?.last_name].filter(Boolean).join(' ') || 'Unknown'
+      })
+    }
+  }
+
   if (permission === 'edit') {
     // Shared editors get redirected to the dedicated edit page
     redirect(`/recipes/${id}/edit`)
@@ -69,19 +86,6 @@ export default async function RecipePage({ params }: Params) {
       <main className="max-w-2xl mx-auto px-4 py-10">
         <div className="flex items-center justify-between gap-3 mb-8">
           <Link href="/recipes" className="text-stone-400 hover:text-stone-600 text-sm">← My recipes</Link>
-          {isOwner && (
-            <div className="flex items-center gap-2">
-              <Link href={`/recipes/${id}/edit`}
-                className="text-sm border border-stone-300 hover:border-stone-400 text-stone-600 px-3 py-1.5 rounded-lg transition-colors">
-                ✏️ Edit
-              </Link>
-              <Link href={`/recipes/${id}/share`}
-                className="text-sm border border-stone-300 hover:border-stone-400 text-stone-600 px-3 py-1.5 rounded-lg transition-colors">
-                👥 Share
-              </Link>
-              <DeleteRecipeButton recipeId={id} />
-            </div>
-          )}
         </div>
 
         <RecipeResults
@@ -100,8 +104,15 @@ export default async function RecipePage({ params }: Params) {
           showChefNotes={isOwner}
           displayMode={(recipe.display_pref ?? profile?.measurement_pref ?? 'volume') as 'both' | 'weight' | 'volume'}
           recipeId={recipe.id}
+          sharedWith={sharedWith}
+          {...(isOwner && {
+            editHref: `/recipes/${id}/edit`,
+            shareHref: `/recipes/${id}/share`,
+            deleteButton: <DeleteRecipeButton recipeId={id} />,
+          })}
         />
       </main>
+      <Footer />
     </>
   )
 }

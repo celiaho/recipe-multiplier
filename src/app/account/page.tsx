@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/Navbar'
+import { Footer } from '@/components/Footer'
 import { AccountForm } from './AccountForm'
 
 export default async function AccountPage() {
@@ -17,6 +18,7 @@ export default async function AccountPage() {
         <h1 className="text-2xl font-bold text-stone-800 mb-8">Account</h1>
         <AccountForm profile={profile} email={user.email ?? ''} />
       </main>
+      <Footer />
     </>
   )
 }

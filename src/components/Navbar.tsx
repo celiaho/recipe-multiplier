@@ -79,6 +79,15 @@ export function Navbar({ profile, email }: NavbarProps) {
                   >
                     Account
                   </Link>
+                  <a
+                    href="https://recipemultiplier.featurebase.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-3 hover:bg-stone-50 text-stone-700"
+                  >
+                    Send Feedback
+                  </a>
                   <button
                     onClick={() => { setMenuOpen(false); handleSignOut() }}
                     className="w-full text-left px-4 py-3 hover:bg-stone-50 text-stone-700 rounded-b-lg"
