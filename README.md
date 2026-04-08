@@ -16,8 +16,9 @@ A recipe scaling tool for chefs and catering professionals. Scale ingredients up
 - **Track costs** — add per-ingredient costs and see total cost + cost per serving
 - **Share with your team** — Google Drive-style per-recipe permissions (view or edit access per person); recipe cards show who a recipe is shared with by name
 - **Chef notes** — private notes visible only to the recipe owner
-- **Contact form** — built-in feedback form at `/contact` with optional screenshot upload
+- **Contact form** — built-in feedback form at `/contact` with optional screenshot upload; submissions delivered via Resend
 - **Privacy Policy + Terms of Service** — at `/privacy` and `/terms`
+- **Footer** — site-wide footer with nav links on all pages
 
 ---
 
@@ -65,11 +66,16 @@ Development was conducted collaboratively with [Claude Code](https://claude.ai/c
    npm install
    ```
 
-3. Create `.env.local` in the project root:
+3. Set up environment variables — copy the example file and fill in real values:
+   ```bash
+   cp .env.example .env.local
    ```
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+   Required variables (see `.env.example` for descriptions and where to find each key):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `RESEND_API_KEY`
+
+   For Vercel deployments, add all three under **Settings → Environment Variables** in your Vercel project dashboard.
 
 4. Run the database schema in your Supabase SQL Editor (`supabase-schema.sql` in repo root).
 

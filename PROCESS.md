@@ -471,6 +471,80 @@ The unchanged-servings early-return path in `scaleIngredients` bypassed `toUnico
 
 ---
 
+## Post-Beta UI Polish & Infrastructure Session (2026-04-08)
+
+### UI polish batch
+
+**Desired servings box**
+Wrapped the desired servings `<Field>` in `RecipeForm.tsx` in a `bg-stone-50 border border-stone-200 rounded-xl p-3` container to visually distinguish it from the original servings field. Grid stays `grid-cols-2 items-start` so tops align.
+
+**Search bar magnifying glass**
+Added a magnifying-glass SVG icon inside a `relative` wrapper on the search input in `RecipeList.tsx`. Input uses `pl-9` to leave room for the icon.
+
+**"Recipe Info" label**
+Added an `<h2>` heading "Recipe Info" above the recipe details section in `RecipeResults.tsx` for clearer visual hierarchy.
+
+**"Copy ingredients" rename**
+Button previously labeled "Copy list" renamed to "Copy ingredients" in `RecipeResults.tsx`.
+
+**Edit / Share / Delete consolidation**
+Removed the separate owner-only action block from `[id]/page.tsx`. Edit, Share, and Delete are now passed as props (`editHref`, `shareHref`, `deleteButton`) into `RecipeResults` and rendered alongside the other action buttons in one row.
+
+**Tooltip — USDA reference**
+Tooltip in `RecipeResults.tsx` updated: USDA FoodData Central linked inline in the tooltip body text. "Account Settings" note moved outside the tooltip as a plain `<p>` below it. Tooltip uses `font-sans` and does not have `pointer-events-none` (so the link is clickable).
+
+**Amber callout shortened**
+"Want to keep this scaled recipe? Hit **Save recipe**…" shortened to "Hit **Save recipe**…" in `RecipeResults.tsx`.
+
+**Chef notes always visible to owner**
+Chef notes section now renders whenever `isOwner && showChefNotes` — even when empty. Empty state shows "No chef notes yet." instead of hiding the section entirely.
+
+**Chef notes left-border style**
+Chef notes block styled with `border-l-4 border-amber-300 pl-3 py-1`.
+
+**Shared with — names on cards and detail view**
+`RecipeCard.tsx`: added `shareUsers?` prop; card shows first + last names of people the recipe is shared with via a 👥 icon linking to the share page (click stops propagation so the card link isn't also followed).
+`[id]/page.tsx`: Supabase query joins `recipe_shares → profiles` to get sharer names. `RecipeResults.tsx`: renders sharedWith line below the actions row.
+
+**Inline confirm before removing share access**
+`ShareManager.tsx`: added `confirmingRemove` state. The ✕ button now shows "Remove? Yes / No" inline before executing deletion.
+
+**Count unit word parsing**
+`weightConversion.ts`: added `STRIP_COUNT_UNITS` Set (piece/pieces, head/heads, bunch/bunches, sprig/sprigs, stalk/stalks, slice/slices, sheet/sheets, link/links, knob/knobs, floret/florets). `getIngredientName()` now strips these alongside standard unit words so ingredient names display correctly in weight columns.
+
+**Em dashes**
+Fixed `word — word` → `word—word` (no spaces) throughout all user-visible strings: `TourSection.tsx`, `ContactForm.tsx`, `BetaBanner.tsx`, `page.tsx`, `AccountForm.tsx`, `contact/page.tsx`, `feedback/page.tsx`, `RecipeResults.tsx`, `RecipeForm.tsx`, `RecipeCard.tsx`.
+
+**"Saved" date prefix**
+Recipe cards now show "Saved MM/DD/YYYY" instead of a bare date.
+
+### Site infrastructure
+
+**Footer**
+Created `src/components/Footer.tsx` (server component) and added it to all 6 page layouts.
+
+**Privacy Policy and Terms of Service**
+Created `src/app/privacy/page.tsx` and `src/app/terms/page.tsx`. Both link to `/contact` for contact (not the raw email address, to prevent scraping).
+
+**Featurebase feedback widget**
+Added Featurebase SDK `<Script>` to `src/app/layout.tsx` with `strategy="afterInteractive"` and `organization: 'recipemultiplier'`.
+
+**Contact form email (Resend)**
+Created `src/app/api/contact/route.ts` using the `resend` npm package to send contact form submissions to `recipemultiplier@celiaho.com`. DevTools reminder email sent via Resend to confirm the integration.
+
+### Environment variable setup (lesson learned)
+
+When `resend` was installed locally (`npm install resend`), `package.json` and `package-lock.json` were not included in the git staging command, causing Vercel builds to fail with `Module not found: Can't resolve 'resend'`. Fixed by staging and committing both files separately.
+
+**Rule established:** whenever a new environment variable or npm package is introduced, three things must happen:
+1. Package committed to `package.json` / `package-lock.json`
+2. Env var added to Vercel dashboard (Settings → Environment Variables, all environments)
+3. Env var documented in `.env.example`
+
+Created `.env.example` in the repo root listing all required variables with placeholder values. Added `!.env.example` exception to `.gitignore` (which uses `.env*` as a blanket rule) so the example file is committed but real secrets are not.
+
+---
+
 ## Deferred: Known Bugs
 
 **Empty line whitespace in ingredient list (fixed 2026-03-28)**
