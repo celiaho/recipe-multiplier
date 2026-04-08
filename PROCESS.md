@@ -209,6 +209,92 @@ Added in this session:
 
 ---
 
+## Beta Polish & Infrastructure Session (2026-04-01 to 2026-04-07)
+
+### Contact page (`/contact`)
+
+New server-rendered page with a client-side form (`ContactForm.tsx`). Features:
+- Subject dropdown (Bug report, Feature request, Compliments, General question, Privacy or data request, Other)
+- Optional screenshot upload (images only, 5 MB limit)
+- Pre-fills name and email for logged-in users via server-side Supabase query
+- Submits as `multipart/FormData` to `/api/contact` → sends via Resend with `replyTo` set to the user's address
+- Public-facing email address deliberately not shown anywhere (anti-scraping); contact form is the only contact method shown in Privacy Policy and Terms of Service
+
+### Dismissible beta banner (`BetaBanner.tsx`)
+
+Replaced static amber callout on `/recipes/new` with a client component that reads/writes `localStorage`. Once dismissed, the banner does not reappear. Storagekey: `beta-banner-dismissed`.
+
+### Dismissible onboarding callouts (`DismissibleCallout.tsx`)
+
+New reusable client component supporting `emerald` and `amber` color variants. Reads localStorage on mount to determine visibility. Shows a tip box with ✕ dismiss button. Used for:
+- Emerald callout above ingredient list: explains weight/volume toggle, links to Account Settings
+- Amber callout near Save button: prompts first-time users to save their scaled recipe
+
+To reset dismissed state for testing: DevTools → Application → Local Storage → delete `hint-weight-toggle` and `hint-save-recipe`.
+
+### Custom 404 (`src/app/not-found.tsx`)
+
+Next.js App Router convention — automatically rendered for all unmatched routes. Uses a kawaii cracked-egg PNG (generated via Bing Image Creator, background removed in Photopea) with chef-themed copy: "This recipe doesn't exist." Two CTAs: Go home + My Recipes.
+
+### Featurebase feedback platform
+
+Featurebase (recipemultiplier.featurebase.app) used as the user feedback portal. The embed widget requires a paid plan, so the Navbar "Send Feedback" dropdown item links externally. The Featurebase JS SDK is loaded via `next/script` in `layout.tsx` with `strategy="afterInteractive"` and `organization: 'recipemultiplier'`.
+
+### Footer + Privacy Policy + Terms of Service
+
+`Footer.tsx` server component added to all six main pages (landing, recipes list, new recipe, recipe detail, edit, account). Links: Privacy Policy → `/privacy`, Terms → `/terms`, Send Feedback → Featurebase portal.
+
+`/privacy` and `/terms` are minimal but legally functional pages. Contact sections link to `/contact` — the email address is not exposed on any public page.
+
+### Bug fixes (scaling logic)
+
+**`scaleSecondaryQtys` decimal regex** — the alternation `\d+(?:\s+\d+\/\d+)?|\d+\/\d+|\d+\.\d+` matched integers before decimals, so "5.5" was matched as two separate "5"s → each scaled → "10.10". Fixed by moving `\d+\.\d+` to the front of the alternation. Same fix applied to `scaleInstructions`.
+
+**`decimalToFraction` near-integer** — `0.666… × 3 = 1.9999…` caused the fractional part to be `0.9999`, which rendered as "1 1/1" (wrong). Fixed with `if (frac > 0.999) return whole + 1`.
+
+---
+
+## UI Polish & Sharing Session (2026-04-07)
+
+### UI Polish Batch
+
+Thirteen targeted UI improvements made across the app:
+
+| # | Change | File(s) |
+|---|--------|---------|
+| 1 | Desired Servings field: `bg-stone-50` outlined box in its grid column | `RecipeForm.tsx` |
+| 2 | Search bar: magnifying glass SVG icon, white background | `RecipeList.tsx` |
+| 3 | Search expanded to all recipe fields (ingredients, recipe info, chef notes) | `RecipeList.tsx` |
+| 4 | "Recipe Info" section heading added in saved recipe view | `RecipeResults.tsx` |
+| 5 | "Copy list" → "Copy ingredients" | `RecipeResults.tsx` |
+| 6 | Edit/Share/Delete consolidated into RecipeResults action row (removed from page level) | `RecipeResults.tsx`, `[id]/page.tsx` |
+| 7 | Measurement tooltip: USDA FoodData Central hyperlink in text; `font-sans` fix; "Manage default" link replaced with inline "Set your default in Account Settings" note | `RecipeResults.tsx` |
+| 8 | Amber save callout shortened: removed "Want to keep this scaled recipe? " prefix | `RecipeResults.tsx` |
+| 9 | Chef notes now visible before saving (previously missing `chefNotes` prop) | `RecipeForm.tsx` |
+| 10 | Chef notes: left-border amber style instead of amber background (avoids visual confusion with DismissibleCallout) | `RecipeResults.tsx` |
+| 11 | Chef notes empty state: shows "No chef notes yet." when owner has no notes, rather than hiding the section | `RecipeResults.tsx` |
+| 12 | Em dashes without surrounding spaces throughout all user-visible text (`word—word` not `word — word`) | All UI files |
+| 13 | Recipe card dates prefixed with "Saved" | `RecipeCard.tsx` |
+
+### Sharing improvements
+
+**"Shared with [Name]" display:** Recipe cards now show the actual names of people a recipe is shared with rather than "Shared with N". Display formats:
+- 1 share: "Shared with FirstName LastName"
+- 2 shares: "Shared with 2: Name1 and Name2"
+- 3+ shares: "Shared with N: Name1, Name2, Name3 and others"
+
+The 👥 icon is a clickable link to the share management page. Share info is also shown below the action row on the recipe detail page (owner only).
+
+Required a query change: own recipes now select `recipe_shares(id, shared_with, profiles!recipe_shares_shared_with_fkey(first_name, last_name))` instead of `recipe_shares(id)`.
+
+**Remove-access confirmation:** Clicking ✕ in the share manager now shows an inline "Remove? Yes / No" prompt before executing the removal, preventing accidental revocations.
+
+### Count unit word parsing fix (`weightConversion.ts`)
+
+Ingredient lines like "8¼ pieces dried bay leaves" showed a split display in Both mode because "pieces" wasn't in the unit-stripping list. `getIngredientName()` now strips: `piece/pieces`, `head/heads`, `bunch/bunches`, `sprig/sprigs`, `stalk/stalks`, `slice/slices`, `sheet/sheets`, `link/links`, `knob/knobs`, `floret/florets`. Result: volume column shows `8¼ pieces`, ingredient name column shows `dried bay leaves`.
+
+---
+
 ## What I Would Do Next
 
 - **Phase 2:** USDA FoodData Central seed script (`scripts/seed-ingredient-densities.ts`) to populate `ingredient_densities` table; AI fallback (Claude Haiku) for unlisted ingredients; `/ingredient-densities` read-only lookup page

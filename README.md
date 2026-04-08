@@ -11,11 +11,13 @@ A recipe scaling tool for chefs and catering professionals. Scale ingredients up
 ## What it does
 
 - **Scale ingredients** — handles fractions, mixed numbers, decimals, colloquial amounts like "a pinch", and automatic unit conversion (e.g. 26 tbsp → 1⅔ cups)
-- **Weight/volume display** — toggle between volume-only, weight-only (g/kg), or both side-by-side; preference saved per-recipe or globally in Account Settings
+- **Weight/volume display** — toggle between volume-only, weight-only (g/kg), or both side-by-side; preference saved per-recipe or globally in Account Settings; weight estimates sourced from USDA FoodData Central
 - **Import from URL** — paste a link from AllRecipes, NYT Cooking, Serious Eats, or most major recipe websites
 - **Track costs** — add per-ingredient costs and see total cost + cost per serving
-- **Share with your team** — Google Drive-style per-recipe permissions (view or edit access per person)
+- **Share with your team** — Google Drive-style per-recipe permissions (view or edit access per person); recipe cards show who a recipe is shared with by name
 - **Chef notes** — private notes visible only to the recipe owner
+- **Contact form** — built-in feedback form at `/contact` with optional screenshot upload
+- **Privacy Policy + Terms of Service** — at `/privacy` and `/terms`
 
 ---
 
