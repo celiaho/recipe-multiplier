@@ -15,9 +15,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
+  const [passwordUpdated, setPasswordUpdated] = useState(false)
 
   useEffect(() => {
     if (window.location.search.includes('confirmed=true')) setConfirmed(true)
+    if (window.location.search.includes('password_updated=true')) setPasswordUpdated(true)
   }, [])
 
   async function handleLogin(e: React.FormEvent) {
@@ -37,7 +39,7 @@ export default function LoginPage() {
   async function handleReset() {
     if (!email) { setError('Enter your email address first.'); return }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/account`,
+      redirectTo: `${window.location.origin}/api/auth/callback?next=/reset-password`,
     })
     if (error) setError(error.message)
     else setResetSent(true)
@@ -57,6 +59,11 @@ export default function LoginPage() {
           {confirmed && (
             <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4">
               Your email is confirmed. You can now log in.
+            </p>
+          )}
+          {passwordUpdated && (
+            <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4">
+              Password updated. You can now log in with your new password.
             </p>
           )}
           {resetSent ? (
